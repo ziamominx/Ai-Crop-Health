@@ -25,7 +25,7 @@ def run_seed(current: User = Depends(staff_required), db: Session = Depends(get_
     """Seed demo users/farms/reports (officer/admin only, DEMO_MODE only)."""
     if not settings.DEMO_MODE:
         raise HTTPException(status_code=403, detail="DEMO_MODE is disabled on this server.")
-    from database.seed import seed_all
+    from seed_demo.seed import seed_all
 
     created = seed_all(db)
     return {"detail": "Demo data seeded.", **created}

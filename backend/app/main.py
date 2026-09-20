@@ -65,19 +65,27 @@ def create_tables():
     Base.metadata.create_all(bind=engine)
     if not settings.DEMO_MODE:
         return
-    from app.models.user import User
-
-    db = SessionLocal()
     try:
-        has_users = db.query(User.id).first() is not None
-        if has_users:
-            return
-        from database.seed import seed_all
+        from app.models.user import User
 
-        created = seed_all(db)
-        print(f"[Agricure] Fresh database detected — seeded demo data: {created}")
-    finally:
-        db.close()
+        db = SessionLocal()
+        try:
+            has_users = db.query(User.id).first() is not None
+            if has_users:
+                return
+            from seed_demo.seed import seed_all
+
+            created = seed_all(db)
+            print(f"[Agricure] Fresh database detected — seeded demo data: {created}")
+        finally:
+            db.close()
+    except Exception as exc:
+        # A seeding failure must never prevent the API from starting — log it
+        # loudly instead (registering users still works; demo logins do not).
+        print("=" * 70)
+        print(f"[Agricure] WARNING: automatic demo seeding failed: {exc}")
+        print("[Agricure] The API is up, but demo logins need seeding to succeed.")
+        print("=" * 70)
 
 
 @app.get("/", tags=["health"])

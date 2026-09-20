@@ -1,10 +1,10 @@
 """Agricure demo-data seeding.
 
 Creates clearly-labelled DEMO users, farms, sensor readings, reports, referrals,
-notifications and model versions. Run:
+notifications and model versions. Run from the backend directory:
 
     cd backend
-    python ../database/seed.py          # uses backend/.env / environment
+    .venv/Scripts/python -m seed_demo.seed
 
 Idempotent: demo users are matched by email; existing rows are kept.
 """
@@ -12,9 +12,6 @@ import argparse
 import random
 import sys
 from datetime import datetime, timedelta, timezone
-
-# Make `app` and `ml` importable when run as a script from database/
-sys.path.insert(0, __import__("os").path.join(__import__("os").path.dirname(__file__), "..", "backend"))
 
 import json  # noqa: E402
 

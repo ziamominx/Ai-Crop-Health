@@ -186,7 +186,7 @@ The login screen has a Farmer / Official / Admin role switcher and per-role demo
 Admin accounts cannot self-register by design.
 
 Demo data is clearly labelled (reports carry `is_demo_inference`, model version `demo-v0`).
-Re-seed anytime via `python ../database/seed.py` (idempotent) or `POST /api/demo/seed`.
+Re-seed anytime via `python -m seed_demo.seed` from `backend/` (idempotent) or `POST /api/demo/seed`.
 
 ### 4b. Demo crop photos
 
@@ -252,7 +252,7 @@ they degrade to LOCAL with a warning instead of failing the upload.
 
 1. Install/start PostgreSQL; create the `agricure` database.
 2. Set `DATABASE_URL=postgresql+psycopg://user:pass@localhost:5432/agricure` in `backend/.env`.
-3. Restart the API — tables are created automatically; run `database/seed.py` for demo data.
+3. Restart the API — tables are created automatically; run `python -m seed_demo.seed` (from `backend/`) for demo data.
 
 ## Deploying to Vercel (full stack)
 
@@ -277,7 +277,7 @@ Environment Variables):
 Notes
 
 - On first boot against an empty database the backend **seeds the demo data
-  automatically** (same as `database/seed.py`), so the demo logins work immediately.
+  automatically** (same as `seed_demo`), so the demo logins work immediately.
 - `backend/vercel.json` tells Vercel to `pip install -r requirements.txt` and serve with
   uvicorn; no extra build settings are needed.
 - Uploaded crop images go to the serverless filesystem, which is read-only except `/tmp`
@@ -417,7 +417,7 @@ thumbnails served from the stored image, disease/confidence/risk, auto-refresh e
 
 **Passwords:** only bcrypt hashes are ever stored (`users.password_hash`). They are one-way —
 the plain password of an existing account cannot be recovered, only reset by re-running
-`database/seed.py` (which recreates demo users) or by registering a new account.
+`seed_demo` (which recreates demo users) or by registering a new account.
 
 ## Motion & visual effects
 
