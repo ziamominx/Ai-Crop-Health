@@ -22,19 +22,25 @@ _is_fallback_db = False
 
 
 def _sqlite_fallback_url() -> str:
-    """A writable SQLite location: CWD normally, temp dir on serverless/RO filesystems."""
-    probe_file = None
+    """A writable SQLite location: the CWD normally, temp dir on serverless.
+
+    The probe must test the CWD itself — on serverless platforms (Vercel etc.)
+    the temp dir is writable while the working directory is NOT, and picking a
+    file the engine can never open crashes startup.
+    """
+    probe_path = os.path.abspath(".agricure_write_probe")
     try:
-        probe_file = tempfile.NamedTemporaryFile(prefix="agricure_w_", delete=False)
+        with open(probe_path, "w") as fh:
+            fh.write("x")
         writable = True
     except (OSError, PermissionError):
         writable = False
     finally:
-        if probe_file is not None:
-            try:
-                os.unlink(probe_file.name)
-            except OSError:
-                pass
+        try:
+            if os.path.exists(probe_path):
+                os.unlink(probe_path)
+        except OSError:
+            pass
     if writable:
         return "sqlite:///./agricure_dev.db"
     tmp_dir = os.path.join(tempfile.gettempdir(), "agricure")
