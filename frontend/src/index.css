@@ -410,3 +410,51 @@ html {
   .ag-aura,
   .ag-aura-dot { display: none !important; }
 }
+
+/* ---------- static demo banner (GitHub Pages build only) ---------- */
+.ag-static-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: min(760px, calc(100vw - 24px));
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(18, 53, 36, 0.94);
+  color: #f6f2e4;
+  font-size: 12px;
+  line-height: 1.5;
+  box-shadow: 0 10px 30px rgba(10, 30, 20, 0.32);
+  backdrop-filter: blur(6px);
+  animation: agBannerIn 0.45s ease both;
+}
+@keyframes agBannerIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.ag-static-banner strong { color: #e9c46a; }
+.ag-static-banner button {
+  background: none;
+  border: 0;
+  color: rgba(246, 242, 228, 0.7);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  margin-left: auto;
+}
+.ag-static-banner button:hover { color: #fff; }
+.ag-static-text { min-width: 0; }
+.ag-static-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #e9c46a; margin-top: 5px; flex: none;
+  animation: agBlink 1.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ag-static-banner { animation: none; }
+  .ag-static-dot { animation: none; }
+}

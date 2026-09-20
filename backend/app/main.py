@@ -44,10 +44,30 @@ for router in (auth_router, farm_router, report_router, sensor_router,
 
 @app.on_event("startup")
 def create_tables():
-    """Ensure the schema exists (idempotent). For production migrations use Alembic."""
-    from app.database import Base, engine
+    """Ensure the schema exists, then seed demo data on a fresh database.
+
+    Both steps are idempotent, so a freshly deployed backend (e.g. on Vercel with
+    a hosted PostgreSQL) is immediately usable with the demo logins — no manual
+    seed step required. For production migrations use Alembic.
+    """
+    from app.database import Base, SessionLocal, engine
 
     Base.metadata.create_all(bind=engine)
+    if not settings.DEMO_MODE:
+        return
+    from app.models.user import User
+
+    db = SessionLocal()
+    try:
+        has_users = db.query(User.id).first() is not None
+        if has_users:
+            return
+        from database.seed import seed_all
+
+        created = seed_all(db)
+        print(f"[Agricure] Fresh database detected — seeded demo data: {created}")
+    finally:
+        db.close()
 
 
 @app.get("/", tags=["health"])

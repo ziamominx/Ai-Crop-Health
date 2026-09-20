@@ -93,8 +93,30 @@ export default function AgricureApp() {
 
 /* Keeps data-lang on the root so the Devanagari/Kannada font rules apply. */
 function LangWrapper() {
-  const { lang } = useLanguage()
-  return <LangRoot lang={lang} />
+  const { lang, t } = useLanguage()
+  return (
+    <>
+      <LangRoot lang={lang} />
+      {import.meta.env.VITE_STATIC_DEMO === 'true' && <StaticDemoBanner t={t} />}
+    </>
+  )
+}
+
+/* Shown only in the published GitHub Pages build, which has no backend.
+   It says plainly what is real (bundled analyses produced by the project's own
+   inference) and what needs the API (uploading a new photo). */
+function StaticDemoBanner({ t }) {
+  const [open, setOpen] = useState(true)
+  if (!open) return null
+  return (
+    <div className="ag-static-banner" role="status">
+      <span className="ag-static-dot" aria-hidden="true" />
+      <span className="ag-static-text">
+        <strong>{t('staticDemoTitle')}</strong> {t('staticDemoBody')}
+      </span>
+      <button type="button" onClick={() => setOpen(false)} aria-label={t('close')}>×</button>
+    </div>
+  )
 }
 
 function LangRoot({ lang }) {

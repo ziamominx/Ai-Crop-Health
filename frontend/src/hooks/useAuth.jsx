@@ -1,5 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { api, setAuthToken, setUnauthorizedHandler } from '../api/client.js'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { api, getAuthToken, setAuthToken, setUnauthorizedHandler } from '../api/client.js'
 
 const AuthContext = createContext(null)
 
@@ -33,6 +33,19 @@ export function AuthProvider({ children }) {
     setAuthToken(null)
     setUser(null)
   }), [])
+
+  /* If a token was already set before React mounted (the static GitHub Pages demo
+     restores its session from sessionStorage in main.jsx), pick the user back up.
+     In the normal app no token exists at boot, so this is a no-op — sessions stay
+     in memory only. */
+  useEffect(() => {
+    if (!getAuthToken()) return undefined
+    let cancelled = false
+    api.me()
+      .then((me) => { if (!cancelled) setUser(me) })
+      .catch(() => { setAuthToken(null) })
+    return () => { cancelled = true }
+  }, [])
 
   return (
     <AuthContext.Provider value={{ user, login, register, logout }}>

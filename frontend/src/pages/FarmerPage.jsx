@@ -34,9 +34,14 @@ const GENERIC_SAFETY = [
 ]
 
 /* Real demo photos (Wikimedia Commons, CC-licensed — see public/demo-photos/CREDITS.txt).
-   Each crop has a diseased sample and a healthy sample so both outcomes can be shown. */
+   Each crop has a diseased sample and a healthy sample so both outcomes can be shown.
+   BASE_URL keeps these working when the app is served from a sub-path (GitHub Pages). */
+const ASSET_BASE = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
 const demoPhotoFor = (crop, healthy = false) =>
-  `/demo-photos/${String(crop).toLowerCase()}${healthy ? '-healthy' : ''}.jpg`
+  `${ASSET_BASE}/demo-photos/${String(crop).toLowerCase()}${healthy ? '-healthy' : ''}.jpg`
+/* The published GitHub Pages build ships without the backend, so it can play back
+   a bundled demo photo but cannot analyse a brand-new upload. */
+const STATIC_DEMO = import.meta.env.VITE_STATIC_DEMO === 'true'
 const demoVariantName = (file) => (file?.name || '').endsWith('-healthy.jpg') ? 'healthy' : 'diseased'
 
 export function FarmerPage({ onLogout }) {
@@ -343,14 +348,21 @@ export function FarmerPage({ onLogout }) {
             <div className="rounded-xl border-2 border-dashed p-8 text-center" style={{ borderColor: '#9fb3c4' }}>
               <ImagePlus className="mx-auto mb-3" color={C.moss} size={30} />
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <label className="ag-body cursor-pointer inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-sm" style={{ background: C.moss, color: 'white' }}>
-                  <Upload size={15} /> {t('uploadBtn')}
-                  <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
-                </label>
-                <button onClick={useDemoPhoto} className="ag-body inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-sm" style={{ border: `1px solid ${C.line}` }}>
+                {!STATIC_DEMO && (
+                  <label className="ag-body cursor-pointer inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-sm" style={{ background: C.moss, color: 'white' }}>
+                    <Upload size={15} /> {t('uploadBtn')}
+                    <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
+                  </label>
+                )}
+                <button onClick={useDemoPhoto} className="ag-body inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-sm" style={{ background: STATIC_DEMO ? C.moss : 'transparent', color: STATIC_DEMO ? 'white' : C.ink, border: `1px solid ${C.line}` }}>
                   <Camera size={15} /> {t('demoPhotoBtn')}
                 </button>
               </div>
+              {STATIC_DEMO && (
+                <p className="ag-body text-xs mt-4 mx-auto max-w-md" style={{ color: 'rgba(20,35,26,0.6)' }}>
+                  {t('staticUploadNote')}
+                </p>
+              )}
               {needPhotoWarn && <p className="text-xs mt-3 font-semibold" style={{ color: C.red }}>{t('needPhoto')}</p>}
             </div>
           ) : (

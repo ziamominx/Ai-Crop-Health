@@ -254,6 +254,40 @@ they degrade to LOCAL with a warning instead of failing the upload.
 2. Set `DATABASE_URL=postgresql+psycopg://user:pass@localhost:5432/agricure` in `backend/.env`.
 3. Restart the API — tables are created automatically; run `database/seed.py` for demo data.
 
+## Deploying to Vercel (full stack)
+
+The repo ships a `vercel.json` at the root that defines two services — the Vite frontend
+and the FastAPI backend — and routes `/api/*` to the backend. In the Vercel "New Project"
+screen, importing this repo should auto-detect exactly that config: **you can simply press
+Create**. If the multi-service preview shows the two services (frontend → Vite,
+backend → FastAPI) and the rewrite snippet, it matches what's committed.
+
+Required environment variables for the **backend** service (Project → Settings →
+Environment Variables):
+
+| Key | Value | Notes |
+|---|---|---|
+| `DATABASE_URL` | `postgresql+psycopg://...` from Neon/Supabase/Vercel Postgres | **Required for real persistence.** Without it the backend falls back to SQLite in `/tmp`, which is EPHEMERAL on serverless — data resets between requests. |
+| `SECRET_KEY` | a long random string | `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `CORS_ORIGINS` | `https://<your-app>.vercel.app,http://localhost:5173` | your deployed frontend origin |
+| `PUBLIC_BASE_URL` | `https://<your-app>.vercel.app` | makes stored image URLs absolute |
+| `DEMO_MODE` | `true` | keeps demo logins and auto-seeds a fresh database on startup |
+| `AI_MODE` | `HEURISTIC_CV` | rule-based image analysis; `REAL_MODEL` needs a served model file |
+
+Notes
+
+- On first boot against an empty database the backend **seeds the demo data
+  automatically** (same as `database/seed.py`), so the demo logins work immediately.
+- `backend/vercel.json` tells Vercel to `pip install -r requirements.txt` and serve with
+  uvicorn; no extra build settings are needed.
+- Uploaded crop images go to the serverless filesystem, which is read-only except `/tmp`
+  and resets per instance. For real persistence configure `STORAGE_PROVIDER=SUPABASE`
+  or `CLOUDINARY` (see Object storage above).
+- The frontend needs no environment variables: the default `VITE_API_BASE` (empty) makes
+  it call the same origin, and `/api/*` rewrites reach the backend.
+- Free Vercel Hobby plan works. Serverless cold starts mean the first request after
+  inactivity takes a few seconds.
+
 ## Where your data is stored (and how to open it without the website)
 
 ### 1. The database

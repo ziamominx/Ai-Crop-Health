@@ -15,7 +15,6 @@ from datetime import datetime, timedelta, timezone
 
 # Make `app` and `ml` importable when run as a script from database/
 sys.path.insert(0, __import__("os").path.join(__import__("os").path.dirname(__file__), "..", "backend"))
-sys.path.insert(0, __import__("os").path.dirname(__file__))
 
 import json  # noqa: E402
 

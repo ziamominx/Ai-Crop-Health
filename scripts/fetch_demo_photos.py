@@ -30,7 +30,6 @@ UA = {"User-Agent": "AgricureAcademicDemo/1.0 (educational project; contact: stu
 
 # Make the ml/ feature extractor importable (backend venv provides numpy/Pillow)
 sys.path.insert(0, os.path.join(ROOT, "backend"))
-sys.path.insert(0, ROOT)
 
 # crop file stem -> ordered Commons search queries (representative disease symptom)
 # Each crop ships two photos: a clearly diseased sample and a healthy one, so the

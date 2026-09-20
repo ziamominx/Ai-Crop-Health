@@ -17,7 +17,6 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEST = os.path.join(ROOT, "frontend", "public", "demo-photos")
 sys.path.insert(0, os.path.join(ROOT, "backend"))
-sys.path.insert(0, ROOT)
 
 from ml.inference import ImageArray, get_model  # noqa: E402
 
