@@ -129,10 +129,6 @@ export const TR = {
     loadFailed: "Could not load data.", retry: "Retry",
     submitReportFailed: "Could not submit the report. Please try again.",
     imageTooLarge: "Image too large — please use a smaller photo.",
-    staticDemoTitle: "Static demo:",
-    staticDemoBody: "this published build runs without the backend, on a bundled sample dataset. Every analysis shown was produced by the project's own model during the build. To analyse your own photo, run the project locally.",
-    close: "Close",
-    staticUploadNote: "Uploading a new photo needs the FastAPI backend — this published build is a static demo. Use \"Use a demo photo\" below to see the full agent flow, or run the project locally to analyse your own images.",
   },
   hi: {
 
@@ -259,10 +255,6 @@ export const TR = {
     loadFailed: "डेटा लोड नहीं हो सका।", retry: "पुनः प्रयास करें",
     submitReportFailed: "रिपोर्ट सबमिट नहीं हो सकी। कृपया पुनः प्रयास करें।",
     imageTooLarge: "छवि बहुत बड़ी है — कृपया छोटी फोटो उपयोग करें।",
-    staticDemoTitle: "स्टैटिक डेमो:",
-    staticDemoBody: "यह प्रकाशित बिल्ड बैकएंड के बिना, बंडल किए गए नमूना डेटा पर चलता है। यहाँ दिखाया गया हर विश्लेषण बिल्ड के समय परियोजना के अपने मॉडल द्वारा बनाया गया है। अपनी फोटो जाँचने के लिए परियोजना को लोकल में चलाएँ।",
-    close: "बंद करें",
-    staticUploadNote: "नई फोटो अपलोड करने के लिए FastAPI बैकएंड चाहिए — यह प्रकाशित बिल्ड स्टैटिक डेमो है। पूरा एजेंट प्रवाह देखने के लिए नीचे \"डेमो फोटो उपयोग करें\" दबाएँ, या अपनी छवियाँ जाँचने के लिए परियोजना लोकल में चलाएँ।",
   },
   mr: {
 
@@ -385,10 +377,6 @@ export const TR = {
     loadFailed: "डेटा लोड करता आला नाही.", retry: "पुन्हा प्रयत्न करा",
     submitReportFailed: "अहवाल सबमिट करता आला नाही. कृपया पुन्हा प्रयत्न करा.",
     imageTooLarge: "प्रतिमा खूप मोठी आहे — कृपया लहान फोटो वापरा.",
-    staticDemoTitle: "स्टॅटिक डेमो:",
-    staticDemoBody: "हे प्रकाशित बिल्ड बॅकएंडशिवाय, बंडल केलेल्या नमुना डेटावर चालते. येथे दाखवलेले प्रत्येक विश्लेषण बिल्डच्या वेळी प्रकल्पाच्या स्वतःच्या मॉडेलने तयार केले आहे. तुमचा फोटो तपासण्यासाठी प्रकल्प स्थानिक पातळीवर चालवा.",
-    close: "बंद करा",
-    staticUploadNote: "नवीन फोटो अपलोड करण्यासाठी FastAPI बॅकएंड लागतो — हे प्रकाशित बिल्ड स्टॅटिक डेमो आहे. संपूर्ण एजंट प्रवाह पाहण्यासाठी खालील \"डेमो फोटो वापरा\" दाबा, किंवा तुमच्या प्रतिमा तपासण्यासाठी प्रकल्प स्थानिक पातळीवर चालवा.",
   },
   kn: {
 
@@ -519,10 +507,6 @@ export const TR = {
     loadFailed: "ಡೇಟಾ ಲೋಡ್ ಆಗಲಿಲ್ಲ.", retry: "ಮರು ಪ್ರಯತ್ನಿಸಿ",
     submitReportFailed: "ವರದಿ ಸಲ್ಲಿಸಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
     imageTooLarge: "ಚಿತ್ರ ತುಂಬಾ ದೊಡ್ಡದಾಗಿದೆ — ದಯವಿಟ್ಟು ಸಣ್ಣ ಫೋಟೋ ಬಳಸಿ.",
-    staticDemoTitle: "ಸ್ಟಾಟಿಕ್ ಡೆಮೊ:",
-    staticDemoBody: "ಈ ಪ್ರಕಟಿತ ಬಿಲ್ಡ್ ಬ್ಯಾಕೆಂಡ್ ಇಲ್ಲದೆ, ಬಂಡಲ್ ಮಾಡಿದ ಮಾದರಿ ಡೇಟಾದಲ್ಲಿ ಚಲಿಸುತ್ತದೆ. ಇಲ್ಲಿ ತೋರಿಸಿರುವ ಪ್ರತಿಯೊಂದು ವಿಶ್ಲೇಷಣೆಯನ್ನು ಬಿಲ್ಡ್ ಸಮಯದಲ್ಲಿ ಯೋಜನೆಯ ಸ್ವಂತ ಮಾದರಿಯೇ ಮಾಡಿದೆ. ನಿಮ್ಮ ಫೋಟೋ ಪರಿಶೀಲಿಸಲು ಯೋಜನೆಯನ್ನು ಸ್ಥಳೀಯವಾಗಿ ಚಲಾಯಿಸಿ.",
-    close: "ಮುಚ್ಚಿ",
-    staticUploadNote: "ಹೊಸ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು FastAPI ಬ್ಯಾಕೆಂಡ್ ಬೇಕು — ಈ ಪ್ರಕಟಿತ ಬಿಲ್ಡ್ ಸ್ಟಾಟಿಕ್ ಡೆಮೊ. ಪೂರ್ಣ ಏಜೆಂಟ್ ಹರಿವನ್ನು ನೋಡಲು ಕೆಳಗಿನ \"ಡೆಮೊ ಫೋಟೋ ಬಳಸಿ\" ಒತ್ತಿರಿ, ಅಥವಾ ನಿಮ್ಮ ಚಿತ್ರಗಳನ್ನು ಪರಿಶೀಲಿಸಲು ಯೋಜನೆಯನ್ನು ಸ್ಥಳೀಯವಾಗಿ ಚಲಾಯಿಸಿ.",
   },
 }
 
