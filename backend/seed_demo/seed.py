@@ -84,7 +84,6 @@ def _synthetic_leaf_image(farmer_id: int, crop: str, healthy: bool, index: int) 
     data = buf.getvalue()
 
     from app.services.storage import _save_local  # deliberate reuse of the demo path
-    os.makedirs("uploads", exist_ok=True)  # storage writes relative to CWD (backend/)
     name = f"f{farmer_id}_{uuid.uuid4().hex[:12]}.jpg"
     url, path = _save_local(data, name)
     return url, path
@@ -211,31 +210,40 @@ def seed_all(db) -> dict:
             db.add(report)
             db.flush()
 
-            # Generate a synthetic leaf image matching the scenario so the real
-            # inference path has genuine bytes to analyse (and the admin live
-            # view shows a stored sample image).
-            url, path = _synthetic_leaf_image(farmer_id=farmer.id, crop=crop,
-                                              healthy=(disease is None), index=i)
-            report.image_url = url
-            report.image_path = path
+            try:
+                # Nested transaction: if this report fails (e.g. image storage
+                # trouble on a read-only serverless filesystem), the users,
+                # farms and sensors seeded so far still survive.
+                db.begin_nested()
 
-            run_full_pipeline(db, report)
-            if disease is None:
-                # Guarantee a clean healthy scenario regardless of inference mode
-                report.disease = None
-                report.is_healthy = True
-                report.confidence = max(report.confidence, 90.0)
-                report.severity = "Low"
-                report.risk_level = "Low"
-                report.risk_score = 0
-                report.risk_factors = json.dumps(["No disease detected"])
-                report.status = "ANALYZED"
-            elif report.disease != disease and settings.AI_MODE != "REAL_MODEL":
-                # Keep the classic demo scenarios recognisable in non-real modes
-                report.disease = disease
-                report.is_healthy = False
-                report.status = "ANALYZED"
-            created["reports"] += 1
+                # Generate a synthetic leaf image matching the scenario so the
+                # real inference path has genuine bytes to analyse (and the
+                # admin live view shows a stored sample image).
+                url, path = _synthetic_leaf_image(farmer_id=farmer.id, crop=crop,
+                                                  healthy=(disease is None), index=i)
+                report.image_url = url
+                report.image_path = path
+
+                run_full_pipeline(db, report)
+                if disease is None:
+                    # Guarantee a clean healthy scenario regardless of inference mode
+                    report.disease = None
+                    report.is_healthy = True
+                    report.confidence = max(report.confidence, 90.0)
+                    report.severity = "Low"
+                    report.risk_level = "Low"
+                    report.risk_score = 0
+                    report.risk_factors = json.dumps(["No disease detected"])
+                    report.status = "ANALYZED"
+                elif report.disease != disease and settings.AI_MODE != "REAL_MODEL":
+                    # Keep the classic demo scenarios recognisable in non-real modes
+                    report.disease = disease
+                    report.is_healthy = False
+                    report.status = "ANALYZED"
+                created["reports"] += 1
+            except Exception as exc:
+                db.rollback()
+                print(f"[Agricure] Seed: report {i + 1} ({crop}) skipped: {exc}")
 
         # ----- referrals -----
         analysed = (db.query(CropReport)

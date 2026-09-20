@@ -4,6 +4,7 @@ Stores only URLs/paths in PostgreSQL; binaries go to the configured provider.
 """
 import os
 import secrets
+import tempfile
 import uuid
 
 from fastapi import HTTPException, UploadFile
@@ -12,6 +13,41 @@ from app.config import settings
 
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+
+_uploads_dir_cache: str | None = None
+
+
+def uploads_dir() -> str:
+    """Writable directory for locally-stored images (resolved once per process).
+
+    Prefers <CWD>/uploads (local dev). On read-only working directories —
+    serverless platforms like Vercel — falls back to a temp directory, which
+    keeps image storage functional (albeit ephemeral) instead of crashing.
+    """
+    global _uploads_dir_cache
+    if _uploads_dir_cache is not None:
+        return _uploads_dir_cache
+
+    candidates = [
+        os.path.join(os.getcwd(), settings.UPLOAD_DIR),
+        os.path.join(tempfile.gettempdir(), "agricure", "uploads"),
+    ]
+    for candidate in candidates:
+        try:
+            os.makedirs(candidate, exist_ok=True)
+            probe = os.path.join(candidate, ".write_probe")
+            with open(probe, "w") as fh:
+                fh.write("x")
+            os.unlink(probe)
+            _uploads_dir_cache = candidate
+            if candidate != candidates[0]:
+                print(f"[Agricure] CWD is read-only — storing images in {candidate} "
+                      "(ephemeral on serverless; use SUPABASE/CLOUDINARY to persist).")
+            return candidate
+        except (OSError, PermissionError):
+            continue
+    raise HTTPException(status_code=507,
+                        detail="No writable directory available for image storage.")
 
 
 def validate_image(file: UploadFile) -> None:
@@ -47,20 +83,14 @@ async def save_image(file: UploadFile, farmer_id: int) -> tuple[str, str]:
 
 
 def _save_local(data: bytes, name: str) -> tuple[str, str]:
-    try:
-        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-        path = os.path.join(settings.UPLOAD_DIR, name)
-        with open(path, "wb") as fh:
-            fh.write(data)
-    except OSError:
-        # Read-only filesystem (serverless). Files would not persist between
-        # requests anyway — surface a clear error instead of silent data loss.
-        raise HTTPException(
-            status_code=507,
-            detail=("LOCAL image storage is not available on this server. "
-                    "Set STORAGE_PROVIDER=SUPABASE or CLOUDINARY with credentials."),
-        )
-    url = f"{settings.PUBLIC_BASE_URL}/api/images/{name}"
+    directory = uploads_dir()
+    path = os.path.join(directory, name)
+    with open(path, "wb") as fh:
+        fh.write(data)
+    # Relative URL: the browser resolves it against the current origin. This
+    # works unchanged locally (Vite proxies /api) and on Vercel (same-domain
+    # /api rewrite) — no PUBLIC_BASE_URL misconfiguration can break images.
+    url = f"/api/images/{name}"
     return url, path
 
 
@@ -111,9 +141,9 @@ def _save_cloudinary(data: bytes, name: str) -> tuple[str, str]:
 
 
 def resolve_url(image_url: str | None, image_path: str | None) -> str | None:
-    """Best URL for the frontend to display."""
+    """Best URL for the frontend to display (relative, same-origin safe)."""
     if image_url:
         return image_url
     if image_path and os.path.exists(image_path):
-        return f"{settings.PUBLIC_BASE_URL}/api/images/{os.path.basename(image_path)}"
+        return f"/api/images/{os.path.basename(image_path)}"
     return None
