@@ -18,3 +18,6 @@ frontend/dist/
 
 # local tooling metadata
 .freebuff/
+
+# generated database viewer snapshot
+database_view.html

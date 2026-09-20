@@ -292,7 +292,28 @@ With `STORAGE_PROVIDER=SUPABASE` or `CLOUDINARY` the bytes go to that provider i
 
 ### 2. Open the database without the website
 
-**Option A — SQLite file (this machine)**
+**Option A — a database app (no code editor needed)**
+
+| App | Works with | Notes |
+|---|---|---|
+| **DB Browser for SQLite** — sqlitebrowser.org | SQLite | Free, small, purpose-built. *Open Database* → `backend/agricure_dev.db` → **Browse Data** tab. Best choice for the current setup. |
+| **DBeaver Community** — dbeaver.io | SQLite **and** PostgreSQL | Free, universal. The one to install if you plan to move to PostgreSQL — a single app for both. |
+| **SQLite Studio** — sqlitestudio.pl | SQLite | Free and portable (runs from a folder, no installer). |
+
+Reading the file while the app is running is fine (SQLite allows concurrent readers).
+
+**Option B — zero install: an HTML snapshot**
+
+```bash
+backend/.venv/Scripts/python scripts/view_database.py          # opens in your browser
+backend/.venv/Scripts/python scripts/view_database.py --limit 500 --no-open
+```
+
+Writes `database_view.html` in the project root: every table in a sidebar with row counts,
+all rows in a table view, `NULL`s dimmed, JSON columns pretty-printed, and stored crop
+samples shown as clickable thumbnails. Read-only and offline — re-run it any time to refresh.
+
+**Option C — SQLite file via the command line**
 
 ```bash
 # 1) simplest: SQLite CLI (ships with Python)
@@ -311,7 +332,7 @@ sqlite> select u.name, substr(u.email,1,24), r.id, r.crop, r.disease, r.confiden
   The `image_path` column tells you the exact file in `backend/uploads/` for each sample.
 * **VS Code**: install *SQLite Viewer* and click the `.db` file.
 
-**Option B — PostgreSQL (the real setup)**
+**Option D — PostgreSQL (the real setup)**
 
 ```bash
 psql -U agricure -d agricure
@@ -322,7 +343,7 @@ agricure=# select u.name, u.role, count(*) as samples
 ```
 or open the same server in **pgAdmin** / **DBeaver** using the `DATABASE_URL` credentials.
 
-**Option C — REST API without the UI** (Swagger: http://localhost:8000/docs)
+**Option E — REST API without the UI** (Swagger: http://localhost:8000/docs)
 
 ```bash
 # log in, then read any table through the API
