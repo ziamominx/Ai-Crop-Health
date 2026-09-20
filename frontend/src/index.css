@@ -1,0 +1,412 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Agricure motion system
+   Forest/wheat palette + restrained, high-craft motion.
+   Everything degrades gracefully with prefers-reduced-motion.
+   ============================================================ */
+
+:root {
+  --ag-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ag-ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ag-wheat: #d8a53d;
+  --ag-moss: #4f7942;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* NOTE: .ag-root must never get a transform/filter/backdrop-filter — it hosts
+   position:fixed children (cursor aura, scroll progress, grain) that would
+   otherwise be re-parented to it and clipped. */
+.ag-root {
+  overflow-x: clip;
+}
+
+::selection {
+  background: rgba(216, 165, 61, 0.35);
+  color: #14231a;
+}
+
+/* ---------- Film grain overlay ---------- */
+.ag-grain::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  animation: agGrain 6s steps(6) infinite;
+}
+@keyframes agGrain {
+  0%,
+  100% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-3%, 2%, 0); }
+  40% { transform: translate3d(2%, -3%, 0); }
+  60% { transform: translate3d(-2%, -2%, 0); }
+  80% { transform: translate3d(3%, 1%, 0); }
+}
+
+/* ---------- Scroll reveals ---------- */
+.ag-reveal {
+  opacity: 0;
+  transform: translate3d(0, 30px, 0);
+  transition:
+    opacity 0.85s var(--ag-ease),
+    transform 1s var(--ag-ease),
+    filter 1s var(--ag-ease);
+  filter: blur(6px);
+  will-change: opacity, transform;
+}
+.ag-reveal[data-variant='up-sm'] { transform: translate3d(0, 16px, 0); }
+.ag-reveal[data-variant='left'] { transform: translate3d(-38px, 0, 0); }
+.ag-reveal[data-variant='right'] { transform: translate3d(38px, 0, 0); }
+.ag-reveal[data-variant='scale'] { transform: translate3d(0, 26px, 0) scale(0.965); }
+.ag-reveal[data-variant='blur'] { transform: none; filter: blur(14px); }
+.ag-reveal.is-in {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+/* ---------- Masked line reveal (display type) ---------- */
+.ag-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em; /* room for descenders */
+}
+.ag-line > span {
+  display: block;
+  transform: translate3d(0, 115%, 0);
+  animation: agLineUp 1.15s var(--ag-ease) both;
+}
+@keyframes agLineUp {
+  to { transform: translate3d(0, 0, 0); }
+}
+
+/* ---------- Staggered children ---------- */
+.ag-stagger > * {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  animation: agFadeUp 0.8s var(--ag-ease) both;
+}
+.ag-stagger > *:nth-child(1) { animation-delay: 0.04s; }
+.ag-stagger > *:nth-child(2) { animation-delay: 0.1s; }
+.ag-stagger > *:nth-child(3) { animation-delay: 0.16s; }
+.ag-stagger > *:nth-child(4) { animation-delay: 0.22s; }
+.ag-stagger > *:nth-child(5) { animation-delay: 0.28s; }
+.ag-stagger > *:nth-child(6) { animation-delay: 0.34s; }
+.ag-stagger > *:nth-child(7) { animation-delay: 0.4s; }
+.ag-stagger > *:nth-child(8) { animation-delay: 0.46s; }
+.ag-stagger > *:nth-child(9) { animation-delay: 0.52s; }
+.ag-stagger > *:nth-child(10) { animation-delay: 0.58s; }
+.ag-stagger > *:nth-child(11) { animation-delay: 0.64s; }
+.ag-stagger > *:nth-child(n + 12) { animation-delay: 0.7s; }
+@keyframes agFadeUp {
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* ---------- Marquee band ---------- */
+.ag-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
+}
+.ag-marquee__track {
+  display: inline-flex;
+  align-items: center;
+  animation: agMarquee 34s linear infinite;
+}
+.ag-marquee:hover .ag-marquee__track { animation-play-state: paused; }
+@keyframes agMarquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+.ag-marquee__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.2rem;
+  padding: 0 1.1rem;
+}
+.ag-marquee__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.65;
+}
+
+/* ---------- Floating gradient blobs (hero) ---------- */
+.ag-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: 0.42;
+  pointer-events: none;
+  animation: agFloat 20s var(--ag-ease-soft) infinite;
+}
+.ag-blob--slow { animation-duration: 28s; animation-direction: reverse; }
+@keyframes agFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(34px, -42px, 0) scale(1.1); }
+  66% { transform: translate3d(-28px, 26px, 0) scale(0.94); }
+}
+
+/* ---------- Cursor aura ---------- */
+.ag-aura,
+.ag-aura-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 55;
+  pointer-events: none;
+  border-radius: 50%;
+  transform: translate3d(-50%, -50%, 0);
+}
+.ag-aura {
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(216, 165, 61, 0.16), rgba(79, 121, 66, 0.1) 45%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease, width 0.5s var(--ag-ease), height 0.5s var(--ag-ease);
+}
+.ag-aura.is-active { opacity: 1; }
+.ag-aura.is-hot { width: 340px; height: 340px; }
+.ag-aura-dot {
+  width: 7px;
+  height: 7px;
+  background: rgba(216, 165, 61, 0.85);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+  transition: transform 0.25s var(--ag-ease), background 0.3s ease, width 0.3s var(--ag-ease), height 0.3s var(--ag-ease);
+}
+.ag-aura-dot.is-hot {
+  width: 34px;
+  height: 34px;
+  background: rgba(216, 165, 61, 0.28);
+  backdrop-filter: blur(2px);
+}
+
+/* ---------- Hover craft: lift, sheen, zoom, underline ---------- */
+.ag-lift {
+  transition:
+    transform 0.55s var(--ag-ease),
+    box-shadow 0.55s var(--ag-ease),
+    border-color 0.4s ease;
+}
+.ag-lift:hover {
+  transform: translate3d(0, -7px, 0);
+  box-shadow: 0 22px 48px -22px rgba(19, 41, 32, 0.45);
+}
+
+.ag-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.ag-sheen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.75s var(--ag-ease);
+  pointer-events: none;
+}
+.ag-sheen:hover::after { left: 140%; }
+
+.ag-zoom { overflow: hidden; }
+.ag-zoom img {
+  transition: transform 1.2s var(--ag-ease), filter 0.6s ease;
+  will-change: transform;
+}
+.ag-zoom:hover img { transform: scale(1.07); }
+
+.ag-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  transition: background-size 0.5s var(--ag-ease);
+}
+.ag-underline:hover { background-size: 100% 1px; }
+
+/* Magnetic buttons get a tiny cursor-follow nudge via CSS vars set in JS */
+.ag-magnetic {
+  transition: transform 0.35s var(--ag-ease);
+  transform: translate3d(var(--ag-mx, 0px), var(--ag-my, 0px), 0);
+}
+
+/* ---------- Screen / panel transitions ---------- */
+.ag-screen {
+  animation: agScreenIn 0.65s var(--ag-ease) both;
+}
+@keyframes agScreenIn {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.996); }
+  to { opacity: 1; transform: none; }
+}
+.ag-panel {
+  animation: agPanelIn 0.5s var(--ag-ease) both;
+}
+@keyframes agPanelIn {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Live pulse + status ---------- */
+.ag-pulse {
+  position: relative;
+  display: inline-flex;
+}
+.ag-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.55;
+  animation: agPulse 1.9s ease-out infinite;
+}
+@keyframes agPulse {
+  0% { transform: scale(0.7); opacity: 0.55; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.ag-blink {
+  animation: agBlink 1.5s ease-in-out infinite;
+}
+@keyframes agBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ---------- Scroll progress bar ---------- */
+.ag-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  z-index: 70;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--ag-moss), var(--ag-wheat));
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* ---------- Scroll cue ---------- */
+.ag-cue {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.ag-cue span {
+  display: block;
+  width: 1px;
+  height: 34px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75), transparent);
+  animation: agCue 1.9s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes agCue {
+  0% { transform: scaleY(0.2); opacity: 0.3; }
+  50% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0.2); opacity: 0.3; }
+}
+
+/* ---------- Agent pipeline steps (analysis in progress) ---------- */
+.ag-step {
+  opacity: 0.35;
+  transform: translate3d(0, 6px, 0);
+  transition: opacity 0.5s var(--ag-ease), transform 0.5s var(--ag-ease);
+}
+.ag-step.is-done { opacity: 1; transform: none; }
+.ag-step__bar {
+  position: relative;
+  height: 3px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: rgba(20, 35, 26, 0.1);
+}
+.ag-step__bar > i {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--ag-moss), var(--ag-wheat));
+  transition: transform 0.6s var(--ag-ease);
+}
+.ag-step.is-done .ag-step__bar > i { transform: scaleX(1); }
+
+/* ---------- Shimmer placeholder ---------- */
+.ag-shimmer {
+  background: linear-gradient(90deg, rgba(20, 35, 26, 0.06) 25%, rgba(20, 35, 26, 0.12) 37%, rgba(20, 35, 26, 0.06) 63%);
+  background-size: 400% 100%;
+  animation: agShimmer 1.4s ease-in-out infinite;
+}
+@keyframes agShimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* ---------- Row / card enter (lists, tables) ---------- */
+.ag-row-in {
+  animation: agRowIn 0.55s var(--ag-ease) both;
+}
+@keyframes agRowIn {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Reduced motion: switch everything off ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ag-reveal,
+  .ag-reveal.is-in {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+  .ag-line > span {
+    transform: none !important;
+    animation: none !important;
+  }
+  .ag-stagger > *,
+  .ag-row-in,
+  .ag-panel,
+  .ag-screen {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .ag-marquee__track,
+  .ag-blob,
+  .ag-grain::after,
+  .ag-pulse::after,
+  .ag-blink,
+  .ag-cue span,
+  .ag-shimmer {
+    animation: none !important;
+  }
+  .ag-aura,
+  .ag-aura-dot { display: none !important; }
+  .ag-lift:hover,
+  .ag-zoom:hover img { transform: none !important; }
+  .ag-sheen::after { display: none; }
+}
+
+/* Touch devices: no cursor aura */
+@media (hover: none), (pointer: coarse) {
+  .ag-aura,
+  .ag-aura-dot { display: none !important; }
+}

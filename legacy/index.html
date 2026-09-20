@@ -1,0 +1,1538 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agricure — AI Crop Health</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>html,body,#root{margin:0;padding:0;min-height:100%;}</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/plain" id="app-source">
+const { useState, useEffect, useCallback, useRef } = React;
+function makeIcon(inner) {
+  return function IconCmp({ size = 18, color = "currentColor", className = "", style, ...rest }) {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style} dangerouslySetInnerHTML={{ __html: inner }} {...rest} />
+    );
+  };
+}
+const Sprout = makeIcon(`<path d="M7 20h10"/><path d="M10 20c0-5-2-8-6-8 0 4 2 6 6 6"/><path d="M14 20c0-6 3-9 7-9 0 5-3 8-7 8"/><path d="M12 20v-6"/>`);
+const Camera = makeIcon(`<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>`);
+const Upload = makeIcon(`<path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>`);
+const ShieldCheck = makeIcon(`<path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6z"/><path d="M9 12l2 2 4-4"/>`);
+const AlertTriangle = makeIcon(`<path d="M12 4L2 20h20L12 4z"/><path d="M12 10v4"/><path d="M12 17h.01"/>`);
+const MapPin = makeIcon(`<path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>`);
+const CloudRain = makeIcon(`<path d="M7 16a4 4 0 0 1 .3-8 5.5 5.5 0 0 1 10.6 1.5A3.5 3.5 0 0 1 17 16H7z"/><path d="M9 19l-1 2"/><path d="M13 19l-1 2"/><path d="M17 19l-1 2"/>`);
+const Droplets = makeIcon(`<path d="M12 3c3 4 6 7 6 10a6 6 0 0 1-12 0c0-3 3-6 6-10z"/>`);
+const ThermometerSun = makeIcon(`<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z"/><path d="M4 12h1"/><path d="M4.5 8.5l.8.5"/><path d="M4.5 15.5l.8-.5"/>`);
+const User = makeIcon(`<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/>`);
+const Landmark = makeIcon(`<path d="M3 21h18"/><path d="M5 21V10"/><path d="M9 21V10"/><path d="M15 21V10"/><path d="M19 21V10"/><path d="M3 10l9-6 9 6"/>`);
+const Menu = makeIcon(`<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>`);
+const X = makeIcon(`<path d="M5 5l14 14"/><path d="M19 5L5 19"/>`);
+const ArrowRight = makeIcon(`<path d="M4 12h16"/><path d="M13 5l7 7-7 7"/>`);
+const CheckCircle2 = makeIcon(`<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5"/>`);
+const Clock = makeIcon(`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>`);
+const TrendingUp = makeIcon(`<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>`);
+const RefreshCw = makeIcon(`<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>`);
+const LogOut = makeIcon(`<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>`);
+const Languages = makeIcon(`<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/>`);
+const ChevronRight = makeIcon(`<path d="M9 6l6 6-6 6"/>`);
+const Sparkles = makeIcon(`<path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>`);
+const ClipboardList = makeIcon(`<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M9 11h6"/><path d="M9 15h6"/><path d="M9 19h4"/>`);
+const Database = makeIcon(`<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>`);
+const ImagePlus = makeIcon(`<rect x="3" y="4" width="14" height="14" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="M4 17l4-4 3 3 3-3 3 3"/><path d="M19 5v6"/><path d="M16 8h6"/>`);
+const Bug = makeIcon(`<rect x="8" y="7" width="8" height="12" rx="4"/><path d="M12 7V4"/><path d="M9 4l1.5 2"/><path d="M15 4l-1.5 2"/><path d="M8 11H4"/><path d="M8 15H4"/><path d="M16 11h4"/><path d="M16 15h4"/><path d="M9 19l-2 2"/><path d="M15 19l2 2"/>`);
+const Wifi = makeIcon(`<path d="M2 8.5a16 16 0 0 1 20 0"/><path d="M5.5 12.5a11 11 0 0 1 13 0"/><path d="M9 16.5a6 6 0 0 1 6 0"/><circle cx="12" cy="19.5" r="1"/>`);
+const Bell = makeIcon(`<path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6z"/><path d="M10 19a2 2 0 0 0 4 0"/>`);
+const FlaskConical = makeIcon(`<path d="M9 3h6"/><path d="M10 3v6l-5.5 9.5A1.5 1.5 0 0 0 5.8 21h12.4a1.5 1.5 0 0 0 1.3-2.5L14 9V3"/><path d="M7.5 15h9"/>`);
+const Stethoscope = makeIcon(`<path d="M5 4v6a5 5 0 0 0 10 0V4"/><path d="M7 4H3"/><path d="M11 4H7"/><path d="M15 10v2a6 6 0 0 0 12 0"/><circle cx="20" cy="19" r="2"/>`);
+const Map2 = makeIcon(`<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14"/><path d="M15 6v14"/>`);
+const BrainCog = makeIcon(`<circle cx="12" cy="12" r="4"/><path d="M12 3v2"/><path d="M12 19v2"/><path d="M4.9 4.9l1.4 1.4"/><path d="M17.7 17.7l1.4 1.4"/><path d="M3 12h2"/><path d="M19 12h2"/><path d="M4.9 19.1l1.4-1.4"/><path d="M17.7 6.3l1.4-1.4"/>`);
+const HistoryIcon = makeIcon(`<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/><path d="M12 7v5l3.5 2"/>`);
+
+
+/* ============================= DESIGN TOKENS ============================= */
+const C = {
+  ink: "#14231a",
+  forest: "#1f3d2b",
+  forestDark: "#132920",
+  moss: "#4f7942",
+  mossLight: "#7fa869",
+  wheat: "#d8a53d",
+  wheatDeep: "#b9852a",
+  cream: "#faf6ec",
+  creamDeep: "#f1ead8",
+  soil: "#6b4226",
+  white: "#ffffff",
+  red: "#b8402a",
+  amber: "#a56c17",
+  green: "#3d7a4c",
+  line: "rgba(20,35,26,0.12)",
+};
+
+const FONTS = `
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Kannada:wght@400;600;700&display=swap');
+.ag-root{ --font-display: 'Instrument Serif', serif; --font-body: 'Inter', sans-serif; }
+.ag-root[data-lang="hi"], .ag-root[data-lang="mr"]{ --font-display: 'Noto Sans Devanagari', sans-serif; --font-body: 'Noto Sans Devanagari', sans-serif; }
+.ag-root[data-lang="kn"]{ --font-display: 'Noto Sans Kannada', sans-serif; --font-body: 'Noto Sans Kannada', sans-serif; }
+.ag-display{ font-family: var(--font-display); }
+.ag-body{ font-family: var(--font-body); }
+.ag-fade{ animation: agFadeIn .5s ease both; }
+@keyframes agFadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+.ag-rows{
+  background-image: repeating-linear-gradient(115deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 26px);
+}
+@media (prefers-reduced-motion: reduce){ .ag-fade{ animation:none; } }
+`;
+
+/* ============================= DEMO DATA ============================= */
+const CROPS = ["Tomato", "Wheat", "Cotton", "Rice", "Onion"];
+const LOCATIONS = ["Nashik", "Pune", "Ahmednagar", "Nagpur", "Kolhapur"];
+const DISEASE_MAP = {
+  Tomato: ["Early Blight", "Late Blight", "Leaf Curl Virus"],
+  Wheat: ["Yellow Rust", "Powdery Mildew"],
+  Cotton: ["Bollworm Damage", "Leaf Curl Virus"],
+  Rice: ["Blast", "Bacterial Leaf Blight"],
+  Onion: ["Purple Blotch"],
+};
+const ACTIONS = {
+  Low: [
+    "Monitor the affected plants every 2-3 days",
+    "Remove any visibly damaged leaves",
+    "Continue normal watering and spacing",
+  ],
+  Moderate: [
+    "Remove and destroy the worst-affected leaves",
+    "Improve airflow between rows",
+    "Check neighbouring plants for the same signs",
+    "Contact your local Krishi Vigyan Kendra if it spreads",
+  ],
+  High: [
+    "Isolate and remove severely affected plants immediately",
+    "Improve field drainage and sanitation",
+    "Request an on-site visit from an agriculture officer",
+    "Avoid working in the field while leaves are wet",
+  ],
+};
+const DEMO_CREDS = {
+  farmer: { email: "demo@agricure.app", pass: "demo1234", name: "Ramesh Patil" },
+  official: { email: "officer@agricure.gov.in", pass: "officer1234", name: "Dr. S. Kulkarni" },
+};
+
+/* Generic, label-first treatment guidance. Always defers to the product label and an
+   extension officer — this app never prescribes an exact chemical + dose on its own. */
+const TREATMENT_MAP = {
+  "Early Blight": { category: "Fungicide (protectant)", timing: "Spray in the early morning or evening, not in direct sun", phi: "7 days", note: "Rotate fungicide groups each season to avoid resistance." },
+  "Late Blight": { category: "Fungicide (systemic)", timing: "Apply before rain if forecast; reapply after heavy rain", phi: "7–10 days", note: "Destroy infected debris away from the field — do not compost." },
+  "Leaf Curl Virus": { category: "No direct chemical cure — control the whitefly vector", timing: "Use yellow sticky traps; treat only the vector as per label", phi: "As per vector treatment label", note: "Remove and destroy infected plants to stop virus spread." },
+  "Yellow Rust": { category: "Fungicide (triazole group)", timing: "Apply at first sign of yellow stripes on leaves", phi: "21–35 days (cereal-specific)", note: "Check resistant wheat varieties for your next sowing." },
+  "Powdery Mildew": { category: "Fungicide (sulfur-based or systemic)", timing: "Apply when white powdery patches first appear", phi: "As per label", note: "Improve row spacing to reduce humidity around plants." },
+  "Bollworm Damage": { category: "Insecticide (as per IPM ladder) or Bt-based biopesticide", timing: "Spray in the evening when pollinators are less active", phi: "As per label", note: "Install pheromone traps to monitor moth activity first." },
+  "Blast": { category: "Fungicide (systemic, rice-specific)", timing: "Apply at boot-leaf stage if disease pressure is high", phi: "21 days", note: "Avoid excess nitrogen fertilizer — it increases blast risk." },
+  "Bacterial Leaf Blight": { category: "Copper-based bactericide", timing: "Apply at first yellowing of leaf margins", phi: "As per label", note: "Avoid working in wet fields — this spreads bacteria on tools and hands." },
+  "Purple Blotch": { category: "Fungicide (protectant)", timing: "Begin spraying at first purple lesions on leaves", phi: "7–14 days", note: "Avoid overhead irrigation late in the day." },
+};
+const GENERIC_SAFETY = [
+  "Always read and follow the product label before use",
+  "Wear gloves, a mask, and full sleeves while spraying",
+  "Do not spray in windy conditions or right before rain",
+  "Keep children and animals away from treated fields",
+  "Wash hands and equipment thoroughly after use",
+];
+
+/* Demo pest-trap / sensor catalogue */
+const TRAP_TYPES = ["Pheromone trap", "Yellow sticky trap", "Light trap"];
+
+/* Demo geospatial coordinates (percent position on a stylised Maharashtra outline) used only
+   for the officer hotspot map — approximate, for demo/visual purposes only. */
+const LOCATION_COORDS = {
+  Nashik: { x: 42, y: 28 },
+  Pune: { x: 46, y: 52 },
+  Ahmednagar: { x: 55, y: 44 },
+  Nagpur: { x: 82, y: 30 },
+  Kolhapur: { x: 34, y: 78 },
+};
+
+const REFERRAL_REASONS = ["Confirm diagnosis in person", "Send a sample to the lab", "Outbreak risk to neighbouring farms", "Unsure how to treat safely"];
+
+/* ============================= TRANSLATIONS ============================= */
+const TR = {
+  en: {
+    appName: "Agricure",
+    langTitle: "Choose your language",
+    langSub: "Select the language you are most comfortable with. You can change it anytime.",
+    nav_home: "Home", nav_farmer: "Farmer Login", nav_official: "Official Login",
+    heroEyebrow: "AI Crop Health · Early Warning System",
+    heroLine1: "Know your crop's health",
+    heroLine2: "before it spreads.",
+    heroSub: "Photograph a leaf. Agricure combines AI diagnosis with weather and local history to warn you early and tell you exactly what to do next.",
+    heroCtaFarmer: "Enter as Farmer",
+    heroCtaOfficial: "Enter as Official",
+    howEyebrow: "How it works",
+    how1t: "Take a photo", how1d: "Snap a leaf, stem or fruit — no complicated forms.",
+    how2t: "AI checks it", how2d: "Get a disease name, a confidence score, and severity.",
+    how3t: "Get a plan", how3d: "A short, clear list of what to do, in your language.",
+    panelsEyebrow: "Two ways in",
+    panelFarmerT: "I am a Farmer", panelFarmerD: "Upload a crop photo and get an instant health check with a simple action plan.",
+    panelOfficialT: "I am an Official", panelOfficialD: "View a live regional dashboard of every report submitted by farmers.",
+    continueLabel: "Continue",
+    loginFarmerTag: "FARMER DEMO", loginOfficialTag: "OFFICIAL DEMO",
+    loginTitle: "Welcome to Agricure",
+    loginSubFarmer: "Log in to check your crop's health.",
+    loginSubOfficial: "Log in to view the regional dashboard.",
+    nameLabel: "Your name", emailLabel: "Email", passwordLabel: "Password",
+    demoLabel: "Demo login:", autofill: "Autofill",
+    loginErr: "That doesn't match the demo details — tap Autofill above.",
+    submitFarmer: "Log in to Farmer App", submitOfficial: "Log in to Official Dashboard",
+    backHome: "← Back",
+    fGreeting: "Hello", fSubGreeting: "Let's check on your field today.",
+    uploadTitle: "New crop check", uploadDesc: "Choose the crop, add the photo, and we'll do the rest.",
+    cropLabel: "Which crop?", locationLabel: "Your location",
+    uploadBtn: "Upload a Photo", demoPhotoBtn: "Use a Demo Photo",
+    analyzeBtn: "Analyse this photo", analyzing: "Analysing your photo…",
+    needPhoto: "Please add a photo first.",
+    resultTitle: "Diagnosis result", diagnosisLabel: "What we found", confidenceLabel: "Confidence",
+    severityLabel: "Severity", riskLabel: "Spread risk",
+    weatherHumidity: "Humidity", weatherRain: "Rain, 24h", weatherTemp: "Temp",
+    actionsLabel: "What to do now",
+    lowConfNote: "Confidence is low — this case has been sent to an agriculture officer for review.",
+    verifiedNote: "Verified by an agriculture officer.",
+    followupLabel: "Recheck this plot in", days: "days",
+    historyTitle: "Your recent checks", historyEmpty: "No checks yet — your first result will appear here.",
+    healthy: "Looks Healthy",
+    severity_Low: "Low", severity_Moderate: "Moderate", severity_High: "High",
+    officerHeading: "Regional Crop Health Overview", officerSub: "Live reports submitted by farmers using Agricure.",
+    statTotal: "TOTAL REPORTS", statHigh: "HIGH RISK", statMod: "MEDIUM RISK", statLow: "LOW RISK",
+    topDiseases: "TOP DETECTED ISSUES", hotspots: "REPORTS BY LOCATION",
+    recentReports: "RECENT FARMER REPORTS", refresh: "Refresh",
+    seedDemo: "Load Demo Reports", loadingReports: "Loading reports…",
+    noReports: "No reports yet. Try “Load Demo Reports” or submit one from the Farmer App.",
+    tblFarmer: "Farmer", tblCrop: "Crop", tblIssue: "Issue", tblSeverity: "Severity", tblRisk: "Risk", tblStatus: "Status", tblAction: "Action",
+    verifyBtn: "Verify", verified: "Verified", pending: "Pending review",
+    logout: "Log out",
+    dbNote: "Reports are stored using shared demo storage — visible to anyone using this app link, for demo purposes only.",
+    sensorTitle: "Pest trap & sensor readings (optional)",
+    sensorDesc: "Add numbers from a pest trap or field sensor to sharpen the spread-risk estimate.",
+    trapTypeLabel: "Trap type", trapCountLabel: "Pests counted today", soilMoistureLabel: "Soil moisture (%)", leafWetnessLabel: "Leaf wetness hours",
+    sensorAdded: "Sensor data attached to this check",
+    treatmentTitle: "Suggested treatment & safe use",
+    treatmentCategory: "Treatment category", treatmentTiming: "When to apply", treatmentPhi: "Pre-harvest interval",
+    treatmentNote: "Field tip", safetyTitle: "Safety precautions", labelDisclaimer: "This is general guidance only — always follow the product label and consult a certified agriculture officer before applying any chemical.",
+    referralTitle: "Need more help?", referralDesc: "Request a visit from an agriculture officer or send this case to a soil/plant health lab.",
+    referralReasonLabel: "Reason for referral", referralBtn: "Request referral", referralSent: "Referral requested — an officer will follow up.",
+    notifTitle: "Alerts", notifEmpty: "No alerts right now.", notifHigh: "high-risk case near", markAllRead: "Mark all read",
+    communityTitle: "Nearby farmers", communityNote: "reports of the same issue nearby in the last few checks",
+    mapTitle: "Geospatial hotspot map", mapNote: "Demo map — marker size and colour show report volume and risk in each area.",
+    referralQueueTitle: "Officer & lab referral requests", referralEmpty: "No referral requests yet.",
+    resolveBtn: "Mark resolved", resolvedStatus: "Resolved", pendingReferral: "Awaiting visit",
+    modelLoopTitle: "Model improvement loop", modelLoopDesc: "Every officer confirmation or correction is logged and used to retrain the diagnosis model.",
+    correctionsLabel: "Field confirmations logged", agreeBtn: "Confirm AI was correct", correctBtn: "Correct the diagnosis",
+    selectActualLabel: "What was it actually?", retrainBtn: "Send batch to retraining", retrainingMsg: "Queued for the next model retraining cycle.",
+    exportBtn: "Export CSV", tblSensor: "Sensor", labSample: "Lab sample requested",
+  },
+  hi: {
+    appName: "एग्रीक्योर",
+    langTitle: "अपनी भाषा चुनें",
+    langSub: "जिस भाषा में आप सहज हों उसे चुनें। आप इसे कभी भी बदल सकते हैं।",
+    nav_home: "मुखपृष्ठ", nav_farmer: "किसान लॉगिन", nav_official: "अधिकारी लॉगिन",
+    heroEyebrow: "AI फसल स्वास्थ्य · पूर्व चेतावनी प्रणाली",
+    heroLine1: "अपनी फसल का हाल जानें",
+    heroLine2: "फैलने से पहले।",
+    heroSub: "पत्ती की फोटो खींचें। एग्रीक्योर AI निदान को मौसम और स्थानीय इतिहास से जोड़कर आपको जल्दी चेतावनी देता है और बताता है कि आगे क्या करना है।",
+    heroCtaFarmer: "किसान के रूप में जाएं",
+    heroCtaOfficial: "अधिकारी के रूप में जाएं",
+    howEyebrow: "कैसे काम करता है",
+    how1t: "फोटो लें", how1d: "पत्ती, तना या फल की फोटो खींचें — कोई जटिल फॉर्म नहीं।",
+    how2t: "AI जांचता है", how2d: "बीमारी का नाम, विश्वास स्कोर और गंभीरता पाएं।",
+    how3t: "योजना पाएं", how3d: "क्या करना है इसकी एक छोटी, स्पष्ट सूची, आपकी भाषा में।",
+    panelsEyebrow: "दो रास्ते",
+    panelFarmerT: "मैं एक किसान हूं", panelFarmerD: "फसल की फोटो अपलोड करें और तुरंत स्वास्थ्य जांच व सरल कार्ययोजना पाएं।",
+    panelOfficialT: "मैं एक अधिकारी हूं", panelOfficialD: "किसानों द्वारा भेजी गई हर रिपोर्ट का लाइव क्षेत्रीय डैशबोर्ड देखें।",
+    continueLabel: "जारी रखें",
+    loginFarmerTag: "किसान डेमो", loginOfficialTag: "अधिकारी डेमो",
+    loginTitle: "एग्रीक्योर में आपका स्वागत है",
+    loginSubFarmer: "अपनी फसल की सेहत जांचने के लिए लॉगिन करें।",
+    loginSubOfficial: "क्षेत्रीय डैशबोर्ड देखने के लिए लॉगिन करें।",
+    nameLabel: "आपका नाम", emailLabel: "ईमेल", passwordLabel: "पासवर्ड",
+    demoLabel: "डेमो लॉगिन:", autofill: "अपने आप भरें",
+    loginErr: "यह डेमो जानकारी से मेल नहीं खाता — ऊपर 'अपने आप भरें' दबाएं।",
+    submitFarmer: "किसान ऐप में लॉगिन करें", submitOfficial: "अधिकारी डैशबोर्ड में लॉगिन करें",
+    backHome: "← वापस",
+    fGreeting: "नमस्ते", fSubGreeting: "आज अपने खेत की जांच करते हैं।",
+    uploadTitle: "नई फसल जांच", uploadDesc: "फसल चुनें, फोटो जोड़ें, बाकी काम हम करेंगे।",
+    cropLabel: "कौन सी फसल?", locationLabel: "आपका स्थान",
+    uploadBtn: "फोटो अपलोड करें", demoPhotoBtn: "डेमो फोटो इस्तेमाल करें",
+    analyzeBtn: "इस फोटो की जांच करें", analyzing: "आपकी फोटो जांची जा रही है…",
+    needPhoto: "कृपया पहले एक फोटो जोड़ें।",
+    resultTitle: "निदान परिणाम", diagnosisLabel: "क्या पाया गया", confidenceLabel: "विश्वास",
+    severityLabel: "गंभीरता", riskLabel: "फैलने का जोखिम",
+    weatherHumidity: "नमी", weatherRain: "बारिश, 24 घं", weatherTemp: "तापमान",
+    actionsLabel: "अभी क्या करें",
+    lowConfNote: "विश्वास कम है — यह मामला समीक्षा के लिए कृषि अधिकारी को भेजा गया है।",
+    verifiedNote: "कृषि अधिकारी द्वारा सत्यापित।",
+    followupLabel: "इस प्लॉट को दोबारा जांचें", days: "दिन में",
+    historyTitle: "आपकी हाल की जांचें", historyEmpty: "अभी तक कोई जांच नहीं — आपका पहला परिणाम यहां दिखेगा।",
+    healthy: "स्वस्थ दिख रही है",
+    severity_Low: "कम", severity_Moderate: "मध्यम", severity_High: "उच्च",
+    officerHeading: "क्षेत्रीय फसल स्वास्थ्य अवलोकन", officerSub: "एग्रीक्योर इस्तेमाल करने वाले किसानों की लाइव रिपोर्टें।",
+    statTotal: "कुल रिपोर्टें", statHigh: "उच्च जोखिम", statMod: "मध्यम जोखिम", statLow: "कम जोखिम",
+    topDiseases: "सबसे ज़्यादा पाई गई समस्याएं", hotspots: "स्थान अनुसार रिपोर्टें",
+    recentReports: "हाल की किसान रिपोर्टें", refresh: "रीफ्रेश करें",
+    seedDemo: "डेमो रिपोर्टें लोड करें", loadingReports: "रिपोर्टें लोड हो रही हैं…",
+    noReports: "अभी कोई रिपोर्ट नहीं। 'डेमो रिपोर्टें लोड करें' आज़माएं या किसान ऐप से एक भेजें।",
+    tblFarmer: "किसान", tblCrop: "फसल", tblIssue: "समस्या", tblSeverity: "गंभीरता", tblRisk: "जोखिम", tblStatus: "स्थिति", tblAction: "कार्रवाई",
+    verifyBtn: "सत्यापित करें", verified: "सत्यापित", pending: "समीक्षा लंबित",
+    logout: "लॉग आउट",
+    dbNote: "रिपोर्टें साझा डेमो स्टोरेज में रखी जाती हैं — यह लिंक इस्तेमाल करने वाले किसी को भी दिख सकती हैं, केवल डेमो के लिए।",
+    sensorTitle: "कीट ट्रैप और सेंसर रीडिंग (वैकल्पिक)",
+    sensorDesc: "फैलाव जोखिम अनुमान को बेहतर बनाने के लिए कीट ट्रैप या फील्ड सेंसर से आंकड़े जोड़ें।",
+    trapTypeLabel: "ट्रैप का प्रकार", trapCountLabel: "आज गिने गए कीट", soilMoistureLabel: "मिट्टी की नमी (%)", leafWetnessLabel: "पत्ती नमी के घंटे",
+    sensorAdded: "इस जांच के साथ सेंसर डेटा जोड़ा गया",
+    treatmentTitle: "सुझाया गया उपचार और सुरक्षित उपयोग",
+    treatmentCategory: "उपचार श्रेणी", treatmentTiming: "कब छिड़काव करें", treatmentPhi: "कटाई-पूर्व अंतराल",
+    treatmentNote: "खेत सुझाव", safetyTitle: "सुरक्षा सावधानियां", labelDisclaimer: "यह केवल सामान्य मार्गदर्शन है — कोई भी रसायन इस्तेमाल करने से पहले हमेशा उत्पाद लेबल का पालन करें और प्रमाणित कृषि अधिकारी से सलाह लें।",
+    referralTitle: "और मदद चाहिए?", referralDesc: "कृषि अधिकारी की यात्रा का अनुरोध करें या इस मामले को मिट्टी/पौध स्वास्थ्य प्रयोगशाला में भेजें।",
+    referralReasonLabel: "रेफरल का कारण", referralBtn: "रेफरल का अनुरोध करें", referralSent: "रेफरल भेजा गया — अधिकारी जल्द संपर्क करेंगे।",
+    notifTitle: "अलर्ट", notifEmpty: "अभी कोई अलर्ट नहीं।", notifHigh: "के पास उच्च जोखिम मामला", markAllRead: "सभी पढ़े हुए चिह्नित करें",
+    communityTitle: "आस-पास के किसान", communityNote: "हाल की जांचों में पास में इसी समस्या की रिपोर्टें",
+    mapTitle: "भौगोलिक हॉटस्पॉट मानचित्र", mapNote: "डेमो मानचित्र — मार्कर का आकार और रंग हर क्षेत्र में रिपोर्ट संख्या और जोखिम दिखाते हैं।",
+    referralQueueTitle: "अधिकारी और प्रयोगशाला रेफरल अनुरोध", referralEmpty: "अभी तक कोई रेफरल अनुरोध नहीं।",
+    resolveBtn: "हल किया गया चिह्नित करें", resolvedStatus: "हल हो गया", pendingReferral: "यात्रा की प्रतीक्षा",
+    modelLoopTitle: "मॉडल सुधार चक्र", modelLoopDesc: "हर अधिकारी पुष्टि या सुधार दर्ज किया जाता है और निदान मॉडल को दोबारा प्रशिक्षित करने में उपयोग होता है।",
+    correctionsLabel: "दर्ज फील्ड पुष्टियां", agreeBtn: "पुष्टि करें कि AI सही था", correctBtn: "निदान सुधारें",
+    selectActualLabel: "असल में क्या था?", retrainBtn: "पुनः प्रशिक्षण के लिए भेजें", retrainingMsg: "अगले मॉडल पुनः प्रशिक्षण चक्र के लिए कतारबद्ध।",
+    exportBtn: "CSV निर्यात करें", tblSensor: "सेंसर", labSample: "लैब नमूना अनुरोधित",
+  },
+  mr: {
+    appName: "अ‍ॅग्रीक्युअर",
+    langTitle: "तुमची भाषा निवडा",
+    langSub: "तुम्हाला सोयीची वाटणारी भाषा निवडा. तुम्ही ती केव्हाही बदलू शकता.",
+    nav_home: "मुखपृष्ठ", nav_farmer: "शेतकरी लॉगिन", nav_official: "अधिकारी लॉगिन",
+    heroEyebrow: "AI पीक आरोग्य · पूर्व इशारा प्रणाली",
+    heroLine1: "तुमच्या पिकाची स्थिती जाणून घ्या",
+    heroLine2: "पसरण्यापूर्वी.",
+    heroSub: "पानाचा फोटो काढा. अ‍ॅग्रीक्युअर AI निदानाला हवामान आणि स्थानिक इतिहासासोबत जोडून लवकर इशारा देते आणि पुढे काय करायचे ते सांगते.",
+    heroCtaFarmer: "शेतकरी म्हणून प्रवेश करा",
+    heroCtaOfficial: "अधिकारी म्हणून प्रवेश करा",
+    howEyebrow: "कसं काम करतं",
+    how1t: "फोटो काढा", how1d: "पान, खोड किंवा फळाचा फोटो काढा — कोणताही किचकट फॉर्म नाही.",
+    how2t: "AI तपासतं", how2d: "रोगाचं नाव, विश्वासार्हता गुण आणि तीव्रता मिळवा.",
+    how3t: "योजना मिळवा", how3d: "काय करायचं याची छोटी, स्पष्ट यादी, तुमच्या भाषेत.",
+    panelsEyebrow: "दोन मार्ग",
+    panelFarmerT: "मी शेतकरी आहे", panelFarmerD: "पिकाचा फोटो अपलोड करा आणि तात्काळ आरोग्य तपासणी व सोपी कृती योजना मिळवा.",
+    panelOfficialT: "मी अधिकारी आहे", panelOfficialD: "शेतकऱ्यांनी पाठवलेल्या प्रत्येक अहवालाचा लाइव्ह प्रादेशिक डॅशबोर्ड पाहा.",
+    continueLabel: "सुरू ठेवा",
+    loginFarmerTag: "शेतकरी डेमो", loginOfficialTag: "अधिकारी डेमो",
+    loginTitle: "अ‍ॅग्रीक्युअरमध्ये स्वागत आहे",
+    loginSubFarmer: "तुमच्या पिकाचं आरोग्य तपासण्यासाठी लॉगिन करा.",
+    loginSubOfficial: "प्रादेशिक डॅशबोर्ड पाहण्यासाठी लॉगिन करा.",
+    nameLabel: "तुमचं नाव", emailLabel: "ईमेल", passwordLabel: "पासवर्ड",
+    demoLabel: "डेमो लॉगिन:", autofill: "आपोआप भरा",
+    loginErr: "हे डेमो माहितीशी जुळत नाही — वर 'आपोआप भरा' दाबा.",
+    submitFarmer: "शेतकरी अ‍ॅपमध्ये लॉगिन करा", submitOfficial: "अधिकारी डॅशबोर्डमध्ये लॉगिन करा",
+    backHome: "← मागे",
+    fGreeting: "नमस्कार", fSubGreeting: "आज आपल्या शेताची तपासणी करूया.",
+    uploadTitle: "नवीन पीक तपासणी", uploadDesc: "पीक निवडा, फोटो जोडा, बाकीचं काम आम्ही करतो.",
+    cropLabel: "कोणतं पीक?", locationLabel: "तुमचं ठिकाण",
+    uploadBtn: "फोटो अपलोड करा", demoPhotoBtn: "डेमो फोटो वापरा",
+    analyzeBtn: "हा फोटो तपासा", analyzing: "तुमचा फोटो तपासला जात आहे…",
+    needPhoto: "कृपया आधी फोटो जोडा.",
+    resultTitle: "निदान निकाल", diagnosisLabel: "काय आढळलं", confidenceLabel: "विश्वासार्हता",
+    severityLabel: "तीव्रता", riskLabel: "पसरण्याचा धोका",
+    weatherHumidity: "आर्द्रता", weatherRain: "पाऊस, 24 तास", weatherTemp: "तापमान",
+    actionsLabel: "आता काय करावं",
+    lowConfNote: "विश्वासार्हता कमी आहे — हे प्रकरण पुनरावलोकनासाठी कृषी अधिकाऱ्याकडे पाठवले आहे.",
+    verifiedNote: "कृषी अधिकाऱ्याने पडताळलेलं.",
+    followupLabel: "हा प्लॉट पुन्हा तपासा", days: "दिवसांत",
+    historyTitle: "तुमच्या अलीकडील तपासण्या", historyEmpty: "अजून कोणतीही तपासणी नाही — तुमचा पहिला निकाल इथे दिसेल.",
+    healthy: "निरोगी दिसतंय",
+    severity_Low: "कमी", severity_Moderate: "मध्यम", severity_High: "उच्च",
+    officerHeading: "प्रादेशिक पीक आरोग्य आढावा", officerSub: "अ‍ॅग्रीक्युअर वापरणाऱ्या शेतकऱ्यांचे लाइव्ह अहवाल.",
+    statTotal: "एकूण अहवाल", statHigh: "उच्च धोका", statMod: "मध्यम धोका", statLow: "कमी धोका",
+    topDiseases: "सर्वाधिक आढळलेल्या समस्या", hotspots: "ठिकाणानुसार अहवाल",
+    recentReports: "अलीकडील शेतकरी अहवाल", refresh: "रीफ्रेश करा",
+    seedDemo: "डेमो अहवाल लोड करा", loadingReports: "अहवाल लोड होत आहेत…",
+    noReports: "अजून कोणतेही अहवाल नाहीत. 'डेमो अहवाल लोड करा' वापरून पाहा किंवा शेतकरी अ‍ॅपमधून एक पाठवा.",
+    tblFarmer: "शेतकरी", tblCrop: "पीक", tblIssue: "समस्या", tblSeverity: "तीव्रता", tblRisk: "धोका", tblStatus: "स्थिती", tblAction: "कृती",
+    verifyBtn: "पडताळा", verified: "पडताळलेलं", pending: "पुनरावलोकन बाकी",
+    logout: "लॉग आउट",
+    dbNote: "अहवाल सामायिक डेमो स्टोरेजमध्ये ठेवले जातात — हे या अ‍ॅप लिंकचा वापर करणाऱ्या कोणालाही दिसू शकतात, फक्त डेमोसाठी.",
+    sensorTitle: "कीड सापळा आणि सेन्सर रीडिंग (ऐच्छिक)",
+    sensorDesc: "प्रसार धोका अंदाज अधिक अचूक करण्यासाठी कीड सापळा किंवा फील्ड सेन्सरमधील आकडे जोडा.",
+    trapTypeLabel: "सापळ्याचा प्रकार", trapCountLabel: "आज मोजलेले कीटक", soilMoistureLabel: "मातीतील ओलावा (%)", leafWetnessLabel: "पानांवरील ओलाव्याचे तास",
+    sensorAdded: "या तपासणीसोबत सेन्सर डेटा जोडला",
+    treatmentTitle: "सुचवलेला उपचार आणि सुरक्षित वापर",
+    treatmentCategory: "उपचार प्रकार", treatmentTiming: "कधी फवारणी करावी", treatmentPhi: "कापणीपूर्व कालावधी",
+    treatmentNote: "शेत टीप", safetyTitle: "सुरक्षा खबरदारी", labelDisclaimer: "ही फक्त सामान्य मार्गदर्शक माहिती आहे — कोणतेही रसायन वापरण्यापूर्वी नेहमी उत्पादनाच्या लेबलचे पालन करा आणि प्रमाणित कृषी अधिकाऱ्याचा सल्ला घ्या.",
+    referralTitle: "अधिक मदत हवी?", referralDesc: "कृषी अधिकाऱ्याच्या भेटीची विनंती करा किंवा हे प्रकरण माती/वनस्पती आरोग्य प्रयोगशाळेत पाठवा.",
+    referralReasonLabel: "रेफरलचे कारण", referralBtn: "रेफरलची विनंती करा", referralSent: "रेफरल पाठवले — अधिकारी लवकरच संपर्क करतील.",
+    notifTitle: "सूचना", notifEmpty: "सध्या कोणतीही सूचना नाही.", notifHigh: "जवळ उच्च-धोका प्रकरण", markAllRead: "सर्व वाचले म्हणून चिन्हांकित करा",
+    communityTitle: "जवळपासचे शेतकरी", communityNote: "अलीकडील तपासण्यांमध्ये जवळपास याच समस्येच्या नोंदी",
+    mapTitle: "भौगोलिक हॉटस्पॉट नकाशा", mapNote: "डेमो नकाशा — मार्करचा आकार आणि रंग प्रत्येक भागातील अहवाल संख्या आणि धोका दाखवतात.",
+    referralQueueTitle: "अधिकारी व प्रयोगशाळा रेफरल विनंत्या", referralEmpty: "अजून कोणतीही रेफरल विनंती नाही.",
+    resolveBtn: "निकाली काढले म्हणून चिन्हांकित करा", resolvedStatus: "निकाली काढले", pendingReferral: "भेटीची प्रतीक्षा",
+    modelLoopTitle: "मॉडेल सुधारणा चक्र", modelLoopDesc: "प्रत्येक अधिकारी पुष्टी किंवा सुधारणा नोंदवली जाते आणि निदान मॉडेल पुन्हा प्रशिक्षित करण्यासाठी वापरली जाते.",
+    correctionsLabel: "नोंदवलेल्या फील्ड पुष्ट्या", agreeBtn: "AI बरोबर होते याची पुष्टी करा", correctBtn: "निदान दुरुस्त करा",
+    selectActualLabel: "प्रत्यक्षात काय होते?", retrainBtn: "पुनर्प्रशिक्षणासाठी पाठवा", retrainingMsg: "पुढील मॉडेल पुनर्प्रशिक्षण चक्रासाठी रांगेत ठेवले.",
+    exportBtn: "CSV निर्यात करा", tblSensor: "सेन्सर", labSample: "लॅब नमुना विनंती केली",
+  },
+  kn: {
+    appName: "ಅಗ್ರಿಕ್ಯೂರ್",
+    langTitle: "ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    langSub: "ನಿಮಗೆ ಆರಾಮದಾಯಕವಾದ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ. ನೀವು ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಬಹುದು.",
+    nav_home: "ಮುಖಪುಟ", nav_farmer: "ರೈತ ಲಾಗಿನ್", nav_official: "ಅಧಿಕಾರಿ ಲಾಗಿನ್",
+    heroEyebrow: "AI ಬೆಳೆ ಆರೋಗ್ಯ · ಮುನ್ನೆಚ್ಚರಿಕೆ ವ್ಯವಸ್ಥೆ",
+    heroLine1: "ನಿಮ್ಮ ಬೆಳೆಯ ಆರೋಗ್ಯ ತಿಳಿಯಿರಿ",
+    heroLine2: "ಹರಡುವ ಮೊದಲೇ.",
+    heroSub: "ಎಲೆಯ ಫೋಟೋ ತೆಗೆಯಿರಿ. ಅಗ್ರಿಕ್ಯೂರ್ AI ರೋಗನಿರ್ಣಯವನ್ನು ಹವಾಮಾನ ಮತ್ತು ಸ್ಥಳೀಯ ಇತಿಹಾಸದೊಂದಿಗೆ ಸೇರಿಸಿ ನಿಮಗೆ ಬೇಗ ಎಚ್ಚರಿಕೆ ನೀಡುತ್ತದೆ ಮತ್ತು ಮುಂದೆ ಏನು ಮಾಡಬೇಕೆಂದು ಹೇಳುತ್ತದೆ.",
+    heroCtaFarmer: "ರೈತರಾಗಿ ಪ್ರವೇಶಿಸಿ",
+    heroCtaOfficial: "ಅಧಿಕಾರಿಯಾಗಿ ಪ್ರವೇಶಿಸಿ",
+    howEyebrow: "ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ",
+    how1t: "ಫೋಟೋ ತೆಗೆಯಿರಿ", how1d: "ಎಲೆ, ಕಾಂಡ ಅಥವಾ ಹಣ್ಣಿನ ಫೋಟೋ ತೆಗೆಯಿರಿ — ಯಾವುದೇ ಜಟಿಲ ಫಾರ್ಮ್ ಇಲ್ಲ.",
+    how2t: "AI ಪರಿಶೀಲಿಸುತ್ತದೆ", how2d: "ರೋಗದ ಹೆಸರು, ವಿಶ್ವಾಸಾರ್ಹತೆ ಅಂಕ ಮತ್ತು ತೀವ್ರತೆ ಪಡೆಯಿರಿ.",
+    how3t: "ಯೋಜನೆ ಪಡೆಯಿರಿ", how3d: "ಏನು ಮಾಡಬೇಕೆಂಬ ಚಿಕ್ಕ, ಸ್ಪಷ್ಟ ಪಟ್ಟಿ, ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ.",
+    panelsEyebrow: "ಎರಡು ಮಾರ್ಗಗಳು",
+    panelFarmerT: "ನಾನು ಒಬ್ಬ ರೈತ", panelFarmerD: "ಬೆಳೆಯ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ಮತ್ತು ತಕ್ಷಣ ಆರೋಗ್ಯ ತಪಾಸಣೆ ಹಾಗೂ ಸರಳ ಕ್ರಿಯಾ ಯೋಜನೆ ಪಡೆಯಿರಿ.",
+    panelOfficialT: "ನಾನು ಒಬ್ಬ ಅಧಿಕಾರಿ", panelOfficialD: "ರೈತರು ಸಲ್ಲಿಸಿದ ಪ್ರತಿ ವರದಿಯ ಲೈವ್ ಪ್ರಾದೇಶಿಕ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ನೋಡಿ.",
+    continueLabel: "ಮುಂದುವರಿಸಿ",
+    loginFarmerTag: "ರೈತ ಡೆಮೊ", loginOfficialTag: "ಅಧಿಕಾರಿ ಡೆಮೊ",
+    loginTitle: "ಅಗ್ರಿಕ್ಯೂರ್‌ಗೆ ಸ್ವಾಗತ",
+    loginSubFarmer: "ನಿಮ್ಮ ಬೆಳೆಯ ಆರೋಗ್ಯ ಪರಿಶೀಲಿಸಲು ಲಾಗಿನ್ ಮಾಡಿ.",
+    loginSubOfficial: "ಪ್ರಾದೇಶಿಕ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ನೋಡಲು ಲಾಗಿನ್ ಮಾಡಿ.",
+    nameLabel: "ನಿಮ್ಮ ಹೆಸರು", emailLabel: "ಇಮೇಲ್", passwordLabel: "ಪಾಸ್‌ವರ್ಡ್",
+    demoLabel: "ಡೆಮೊ ಲಾಗಿನ್:", autofill: "ಸ್ವಯಂ ಭರ್ತಿ",
+    loginErr: "ಇದು ಡೆಮೊ ವಿವರಗಳಿಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ — ಮೇಲಿನ 'ಸ್ವಯಂ ಭರ್ತಿ' ಒತ್ತಿ.",
+    submitFarmer: "ರೈತ ಅಪ್ಲಿಕೇಶನ್‌ಗೆ ಲಾಗಿನ್ ಮಾಡಿ", submitOfficial: "ಅಧಿಕಾರಿ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಲಾಗಿನ್ ಮಾಡಿ",
+    backHome: "← ಹಿಂದೆ",
+    fGreeting: "ನಮಸ್ಕಾರ", fSubGreeting: "ಇಂದು ನಿಮ್ಮ ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸೋಣ.",
+    uploadTitle: "ಹೊಸ ಬೆಳೆ ತಪಾಸಣೆ", uploadDesc: "ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ, ಫೋಟೋ ಸೇರಿಸಿ, ಉಳಿದದ್ದನ್ನು ನಾವು ಮಾಡುತ್ತೇವೆ.",
+    cropLabel: "ಯಾವ ಬೆಳೆ?", locationLabel: "ನಿಮ್ಮ ಸ್ಥಳ",
+    uploadBtn: "ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ", demoPhotoBtn: "ಡೆಮೊ ಫೋಟೋ ಬಳಸಿ",
+    analyzeBtn: "ಈ ಫೋಟೋ ಪರಿಶೀಲಿಸಿ", analyzing: "ನಿಮ್ಮ ಫೋಟೋ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ…",
+    needPhoto: "ದಯವಿಟ್ಟು ಮೊದಲು ಫೋಟೋ ಸೇರಿಸಿ.",
+    resultTitle: "ರೋಗನಿರ್ಣಯ ಫಲಿತಾಂಶ", diagnosisLabel: "ಏನು ಪತ್ತೆಯಾಗಿದೆ", confidenceLabel: "ವಿಶ್ವಾಸಾರ್ಹತೆ",
+    severityLabel: "ತೀವ್ರತೆ", riskLabel: "ಹರಡುವ ಅಪಾಯ",
+    weatherHumidity: "ಆರ್ದ್ರತೆ", weatherRain: "ಮಳೆ, 24ಗಂ", weatherTemp: "ತಾಪಮಾನ",
+    actionsLabel: "ಈಗ ಏನು ಮಾಡಬೇಕು",
+    lowConfNote: "ವಿಶ್ವಾಸಾರ್ಹತೆ ಕಡಿಮೆ ಇದೆ — ಈ ಪ್ರಕರಣವನ್ನು ಪರಿಶೀಲನೆಗಾಗಿ ಕೃಷಿ ಅಧಿಕಾರಿಗೆ ಕಳುಹಿಸಲಾಗಿದೆ.",
+    verifiedNote: "ಕೃಷಿ ಅಧಿಕಾರಿಯಿಂದ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.",
+    followupLabel: "ಈ ಪ್ಲಾಟ್ ಅನ್ನು ಮರುಪರಿಶೀಲಿಸಿ", days: "ದಿನಗಳಲ್ಲಿ",
+    historyTitle: "ನಿಮ್ಮ ಇತ್ತೀಚಿನ ತಪಾಸಣೆಗಳು", historyEmpty: "ಇನ್ನೂ ಯಾವುದೇ ತಪಾಸಣೆ ಇಲ್ಲ — ನಿಮ್ಮ ಮೊದಲ ಫಲಿತಾಂಶ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.",
+    healthy: "ಆರೋಗ್ಯಕರವಾಗಿ ಕಾಣುತ್ತಿದೆ",
+    severity_Low: "ಕಡಿಮೆ", severity_Moderate: "ಮಧ್ಯಮ", severity_High: "ಹೆಚ್ಚು",
+    officerHeading: "ಪ್ರಾದೇಶಿಕ ಬೆಳೆ ಆರೋಗ್ಯ ಅವಲೋಕನ", officerSub: "ಅಗ್ರಿಕ್ಯೂರ್ ಬಳಸುವ ರೈತರ ಲೈವ್ ವರದಿಗಳು.",
+    statTotal: "ಒಟ್ಟು ವರದಿಗಳು", statHigh: "ಹೆಚ್ಚಿನ ಅಪಾಯ", statMod: "ಮಧ್ಯಮ ಅಪಾಯ", statLow: "ಕಡಿಮೆ ಅಪಾಯ",
+    topDiseases: "ಹೆಚ್ಚು ಪತ್ತೆಯಾದ ಸಮಸ್ಯೆಗಳು", hotspots: "ಸ್ಥಳವಾರು ವರದಿಗಳು",
+    recentReports: "ಇತ್ತೀಚಿನ ರೈತ ವರದಿಗಳು", refresh: "ರಿಫ್ರೆಶ್ ಮಾಡಿ",
+    seedDemo: "ಡೆಮೊ ವರದಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಿ", loadingReports: "ವರದಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+    noReports: "ಇನ್ನೂ ಯಾವುದೇ ವರದಿಗಳಿಲ್ಲ. 'ಡೆಮೊ ವರದಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಿ' ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ರೈತ ಅಪ್ಲಿಕೇಶನ್‌ನಿಂದ ಒಂದನ್ನು ಸಲ್ಲಿಸಿ.",
+    tblFarmer: "ರೈತ", tblCrop: "ಬೆಳೆ", tblIssue: "ಸಮಸ್ಯೆ", tblSeverity: "ತೀವ್ರತೆ", tblRisk: "ಅಪಾಯ", tblStatus: "ಸ್ಥಿತಿ", tblAction: "ಕ್ರಮ",
+    verifyBtn: "ಪರಿಶೀಲಿಸಿ", verified: "ಪರಿಶೀಲಿಸಲಾಗಿದೆ", pending: "ಪರಿಶೀಲನೆ ಬಾಕಿ",
+    logout: "ಲಾಗ್ ಔಟ್",
+    dbNote: "ವರದಿಗಳನ್ನು ಹಂಚಿಕೆಯ ಡೆಮೊ ಸಂಗ್ರಹಣೆಯಲ್ಲಿ ಇರಿಸಲಾಗುತ್ತದೆ — ಈ ಆ್ಯಪ್ ಲಿಂಕ್ ಬಳಸುವ ಯಾರಿಗಾದರೂ ಇದು ಕಾಣಿಸಬಹುದು, ಕೇವಲ ಡೆಮೊಗಾಗಿ.",
+    sensorTitle: "ಕೀಟ ಬಲೆ ಮತ್ತು ಸೆನ್ಸರ್ ರೀಡಿಂಗ್ (ಐಚ್ಛಿಕ)",
+    sensorDesc: "ಹರಡುವ ಅಪಾಯದ ಅಂದಾಜನ್ನು ಇನ್ನಷ್ಟು ನಿಖರಗೊಳಿಸಲು ಕೀಟ ಬಲೆ ಅಥವಾ ಫೀಲ್ಡ್ ಸೆನ್ಸರ್‌ನಿಂದ ಸಂಖ್ಯೆಗಳನ್ನು ಸೇರಿಸಿ.",
+    trapTypeLabel: "ಬಲೆಯ ಪ್ರಕಾರ", trapCountLabel: "ಇಂದು ಎಣಿಸಿದ ಕೀಟಗಳು", soilMoistureLabel: "ಮಣ್ಣಿನ ತೇವಾಂಶ (%)", leafWetnessLabel: "ಎಲೆ ತೇವಾಂಶ ಗಂಟೆಗಳು",
+    sensorAdded: "ಈ ತಪಾಸಣೆಯೊಂದಿಗೆ ಸೆನ್ಸರ್ ಡೇಟಾ ಲಗತ್ತಿಸಲಾಗಿದೆ",
+    treatmentTitle: "ಸೂಚಿತ ಚಿಕಿತ್ಸೆ ಮತ್ತು ಸುರಕ್ಷಿತ ಬಳಕೆ",
+    treatmentCategory: "ಚಿಕಿತ್ಸೆ ವರ್ಗ", treatmentTiming: "ಯಾವಾಗ ಸಿಂಪಡಿಸಬೇಕು", treatmentPhi: "ಕೊಯ್ಲಿನ ಮೊದಲಿನ ಅಂತರ",
+    treatmentNote: "ಹೊಲದ ಸಲಹೆ", safetyTitle: "ಸುರಕ್ಷತಾ ಮುನ್ನೆಚ್ಚರಿಕೆಗಳು", labelDisclaimer: "ಇದು ಸಾಮಾನ್ಯ ಮಾರ್ಗದರ್ಶನ ಮಾತ್ರ — ಯಾವುದೇ ರಾಸಾಯನಿಕ ಬಳಸುವ ಮೊದಲು ಯಾವಾಗಲೂ ಉತ್ಪನ್ನದ ಲೇಬಲ್ ಅನುಸರಿಸಿ ಮತ್ತು ಪ್ರಮಾಣೀಕೃತ ಕೃಷಿ ಅಧಿಕಾರಿಯನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+    referralTitle: "ಇನ್ನಷ್ಟು ಸಹಾಯ ಬೇಕೇ?", referralDesc: "ಕೃಷಿ ಅಧಿಕಾರಿಯ ಭೇಟಿಗೆ ವಿನಂತಿಸಿ ಅಥವಾ ಈ ಪ್ರಕರಣವನ್ನು ಮಣ್ಣು/ಸಸ್ಯ ಆರೋಗ್ಯ ಪ್ರಯೋಗಾಲಯಕ್ಕೆ ಕಳುಹಿಸಿ.",
+    referralReasonLabel: "ಶಿಫಾರಸಿನ ಕಾರಣ", referralBtn: "ಶಿಫಾರಸು ವಿನಂತಿಸಿ", referralSent: "ಶಿಫಾರಸು ಕಳುಹಿಸಲಾಗಿದೆ — ಅಧಿಕಾರಿ ಶೀಘ್ರದಲ್ಲೇ ಸಂಪರ್ಕಿಸುತ್ತಾರೆ.",
+    notifTitle: "ಎಚ್ಚರಿಕೆಗಳು", notifEmpty: "ಈಗ ಯಾವುದೇ ಎಚ್ಚರಿಕೆಗಳಿಲ್ಲ.", notifHigh: "ಬಳಿ ಹೆಚ್ಚಿನ ಅಪಾಯದ ಪ್ರಕರಣ", markAllRead: "ಎಲ್ಲವನ್ನೂ ಓದಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ",
+    communityTitle: "ಹತ್ತಿರದ ರೈತರು", communityNote: "ಇತ್ತೀಚಿನ ತಪಾಸಣೆಗಳಲ್ಲಿ ಹತ್ತಿರದಲ್ಲಿ ಇದೇ ಸಮಸ್ಯೆಯ ವರದಿಗಳು",
+    mapTitle: "ಭೌಗೋಳಿಕ ಹಾಟ್‌ಸ್ಪಾಟ್ ನಕ್ಷೆ", mapNote: "ಡೆಮೊ ನಕ್ಷೆ — ಮಾರ್ಕರ್ ಗಾತ್ರ ಮತ್ತು ಬಣ್ಣ ಪ್ರತಿ ಪ್ರದೇಶದಲ್ಲಿ ವರದಿ ಪ್ರಮಾಣ ಮತ್ತು ಅಪಾಯವನ್ನು ತೋರಿಸುತ್ತವೆ.",
+    referralQueueTitle: "ಅಧಿಕಾರಿ ಮತ್ತು ಪ್ರಯೋಗಾಲಯ ಶಿಫಾರಸು ವಿನಂತಿಗಳು", referralEmpty: "ಇನ್ನೂ ಯಾವುದೇ ಶಿಫಾರಸು ವಿನಂತಿಗಳಿಲ್ಲ.",
+    resolveBtn: "ಪರಿಹರಿಸಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ", resolvedStatus: "ಪರಿಹರಿಸಲಾಗಿದೆ", pendingReferral: "ಭೇಟಿಗಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ",
+    modelLoopTitle: "ಮಾದರಿ ಸುಧಾರಣಾ ಚಕ್ರ", modelLoopDesc: "ಪ್ರತಿ ಅಧಿಕಾರಿ ದೃಢೀಕರಣ ಅಥವಾ ತಿದ್ದುಪಡಿಯನ್ನು ದಾಖಲಿಸಲಾಗುತ್ತದೆ ಮತ್ತು ರೋಗನಿರ್ಣಯ ಮಾದರಿಯನ್ನು ಮರುತರಬೇತಿ ನೀಡಲು ಬಳಸಲಾಗುತ್ತದೆ.",
+    correctionsLabel: "ದಾಖಲಿತ ಫೀಲ್ಡ್ ದೃಢೀಕರಣಗಳು", agreeBtn: "AI ಸರಿಯಾಗಿತ್ತು ಎಂದು ದೃಢೀಕರಿಸಿ", correctBtn: "ರೋಗನಿರ್ಣಯ ತಿದ್ದುಪಡಿ ಮಾಡಿ",
+    selectActualLabel: "ಅದು ನಿಜವಾಗಿ ಏನಾಗಿತ್ತು?", retrainBtn: "ಮರುತರಬೇತಿಗೆ ಬ್ಯಾಚ್ ಕಳುಹಿಸಿ", retrainingMsg: "ಮುಂದಿನ ಮಾದರಿ ಮರುತರಬೇತಿ ಚಕ್ರಕ್ಕೆ ಸರತಿಯಲ್ಲಿ ಇರಿಸಲಾಗಿದೆ.",
+    exportBtn: "CSV ರಫ್ತು ಮಾಡಿ", tblSensor: "ಸೆನ್ಸರ್", labSample: "ಲ್ಯಾಬ್ ಮಾದರಿ ವಿನಂತಿಸಲಾಗಿದೆ",
+  },
+};
+
+const LANG_OPTIONS = [
+  { code: "en", native: "English", sub: "English" },
+  { code: "hi", native: "हिंदी", sub: "Hindi" },
+  { code: "mr", native: "मराठी", sub: "Marathi" },
+  { code: "kn", native: "ಕನ್ನಡ", sub: "Kannada" },
+];
+
+/* ============================= STORAGE (browser localStorage) =============================
+   NOTE: This replaces Claude.ai's artifact-only `window.storage` API with a version that
+   works in any real browser via localStorage, so this runs correctly once deployed on
+   GitHub Pages / Vercel / Netlify etc.
+   Caveat: localStorage is per-browser, per-device — it is NOT shared across different
+   farmers' phones. For a real multi-device "officer sees every farmer's report" demo,
+   swap this out for a real backend (Firebase, Supabase, or your own API) later. For a
+   single-device SIH demo (one laptop/phone showing both roles) this works perfectly. */
+const storage = {
+  async get(key) {
+    try {
+      const v = localStorage.getItem(key);
+      return v !== null ? { key, value: v } : null;
+    } catch { return null; }
+  },
+  async set(key, value) {
+    try { localStorage.setItem(key, value); return { key, value }; }
+    catch { return null; }
+  },
+  async list(prefix = "") {
+    try {
+      const keys = Object.keys(localStorage).filter((k) => k.startsWith(prefix));
+      return { keys };
+    } catch { return { keys: [] }; }
+  },
+  async delete(key) {
+    try { localStorage.removeItem(key); return { key, deleted: true }; }
+    catch { return null; }
+  },
+};
+
+/* ============================= HELPERS ============================= */
+function resizeImageFile(file, maxW = 320) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.onerror = () => reject(new Error("image load failed"));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error("file read failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randInt(min, max) { return Math.floor(min + Math.random() * (max - min + 1)); }
+
+function runAnalysis({ crop }) {
+  const isHealthy = Math.random() < 0.18;
+  const diseaseList = DISEASE_MAP[crop] || ["Unidentified Stress"];
+  const disease = isHealthy ? null : pick(diseaseList);
+  const confidence = isHealthy ? randInt(90, 99) : randInt(64, 98);
+  const severity = pick(["Low", "Moderate", "High"]);
+  const humidity = randInt(50, 92);
+  const rainfall = randInt(0, 22);
+  const temp = randInt(24, 34);
+  let risk = "Low";
+  if (humidity > 75 && rainfall > 4) risk = "High";
+  else if (humidity > 60) risk = "Moderate";
+  const lowConfidence = !isHealthy && confidence < 78;
+  const followupDays = severity === "High" ? 2 : severity === "Moderate" ? 4 : 7;
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    crop, disease, isHealthy, confidence, severity, risk,
+    humidity, rainfall, temp, lowConfidence, followupDays,
+    verified: !lowConfidence,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function riskColor(risk) {
+  if (risk === "High") return C.red;
+  if (risk === "Moderate") return C.amber;
+  return C.green;
+}
+
+/* ============================= SMALL UI PIECES ============================= */
+function Pill({ children, color }) {
+  return (
+    <span
+      className="ag-body inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold"
+      style={{ background: `${color}1a`, color, border: `1px solid ${color}55` }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function StatCard({ label, value, color }) {
+  return (
+    <div
+      className="rounded-xl p-4 text-center"
+      style={{ background: C.white, border: `1px solid ${C.line}` }}
+    >
+      <div className="ag-display text-3xl font-semibold" style={{ color: color || C.ink }}>{value}</div>
+      <div className="ag-body text-xs mt-1 tracking-wide" style={{ color: "rgba(20,35,26,0.55)" }}>{label}</div>
+    </div>
+  );
+}
+
+/* ============================= MAIN APP ============================= */
+function AgricureApp() {
+  const [lang, setLang] = useState(null);
+  const [screen, setScreen] = useState("lang"); // lang, landing, login, farmer, officer
+  const [role, setRole] = useState("farmer");
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const t = (key) => (TR[lang || "en"] && TR[lang || "en"][key]) || TR.en[key] || key;
+
+  /* ---- login form ---- */
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [loginError, setLoginError] = useState(false);
+  const [farmerName, setFarmerName] = useState("");
+
+  const openLogin = (r) => {
+    setRole(r);
+    setForm({ name: "", email: "", password: "" });
+    setLoginError(false);
+    setScreen("login");
+    setMenuOpen(false);
+  };
+  const autofill = () => {
+    const c = DEMO_CREDS[role];
+    setForm({ name: c.name, email: c.email, password: c.pass });
+  };
+  const submitLogin = (e) => {
+    e.preventDefault();
+    const c = DEMO_CREDS[role];
+    const ok =
+      (form.email === "" && form.password === "") ||
+      (form.email === c.email && form.password === c.pass);
+    if (!ok) { setLoginError(true); return; }
+    setFarmerName(form.name || c.name);
+    setScreen(role === "farmer" ? "farmer" : "officer");
+  };
+
+  /* ---- farmer state ---- */
+  const [crop, setCrop] = useState(CROPS[0]);
+  const [location, setLocation] = useState(LOCATIONS[0]);
+  const [photoUrl, setPhotoUrl] = useState(null);
+  const [photoThumb, setPhotoThumb] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [result, setResult] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [needPhotoWarn, setNeedPhotoWarn] = useState(false);
+  const fileRef = useRef(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifReadCount, setNotifReadCount] = useState(0);
+
+  /* ---- sensor / pest-trap state ---- */
+  const [trapType, setTrapType] = useState(TRAP_TYPES[0]);
+  const [trapCount, setTrapCount] = useState("");
+  const [soilMoisture, setSoilMoisture] = useState("");
+  const [leafWetness, setLeafWetness] = useState("");
+
+  /* ---- referral state ---- */
+  const [referralReason, setReferralReason] = useState(REFERRAL_REASONS[0]);
+  const [referralSentFor, setReferralSentFor] = useState(null);
+
+  /* ---- community nearby-reports count ---- */
+  const [communityCount, setCommunityCount] = useState(0);
+  useEffect(() => {
+    if (!result || result.isHealthy) { setCommunityCount(0); return; }
+    (async () => {
+      try {
+        const listed = await storage.list("report:");
+        const keys = (listed && listed.keys) || [];
+        let n = 0;
+        for (const k of keys) {
+          try {
+            const rr = await storage.get(k);
+            if (!rr || !rr.value) continue;
+            const parsed = JSON.parse(rr.value);
+            if (parsed.disease === result.disease && parsed.location === location && parsed.id !== result.id) n++;
+          } catch {}
+        }
+        setCommunityCount(n);
+      } catch { setCommunityCount(0); }
+    })();
+  }, [result, location]);
+
+  const requestReferral = async (r) => {
+    const entry = {
+      id: `ref-${Date.now()}`,
+      reportId: r.id, crop: r.crop, disease: r.disease, location, reason: referralReason,
+      farmerName: farmerName || DEMO_CREDS.farmer.name, timestamp: new Date().toISOString(), resolved: false,
+    };
+    try { await storage.set(`referral:${entry.id}`, JSON.stringify(entry)); } catch {}
+    setReferralSentFor(r.id);
+  };
+
+  useEffect(() => {
+    if (screen !== "farmer") return;
+    (async () => {
+      try {
+        const res = await storage.get("myReports");
+        if (res && res.value) setHistory(JSON.parse(res.value));
+      } catch (e) { /* no history yet */ }
+    })();
+  }, [screen]);
+
+  const handleFile = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setNeedPhotoWarn(false);
+    setResult(null);
+    const localUrl = URL.createObjectURL(file);
+    setPhotoUrl(localUrl);
+    try {
+      const thumb = await resizeImageFile(file, 320);
+      setPhotoThumb(thumb);
+    } catch { setPhotoThumb(null); }
+  };
+
+  const useDemoPhoto = () => {
+    setNeedPhotoWarn(false);
+    setResult(null);
+    setPhotoUrl("demo");
+    setPhotoThumb(null);
+  };
+
+  const analyse = async () => {
+    if (!photoUrl) { setNeedPhotoWarn(true); return; }
+    setAnalyzing(true);
+    setResult(null);
+    await new Promise((r) => setTimeout(r, 1100));
+    const r = runAnalysis({ crop });
+    setResult(r);
+    setAnalyzing(false);
+
+    const sensor = (trapCount || soilMoisture || leafWetness)
+      ? { trapType, trapCount: trapCount || null, soilMoisture: soilMoisture || null, leafWetness: leafWetness || null }
+      : null;
+
+    const entry = { ...r, location, thumb: photoThumb, sensor };
+    const newHistory = [entry, ...history].slice(0, 20);
+    setHistory(newHistory);
+    try { await storage.set("myReports", JSON.stringify(newHistory)); } catch {}
+    try {
+      await storage.set(
+        `report:${r.id}`,
+        JSON.stringify({ ...r, location, farmerName: farmerName || "Demo Farmer", thumb: photoThumb, sensor })
+      );
+    } catch {}
+  };
+
+  const resetUpload = () => {
+    setPhotoUrl(null); setPhotoThumb(null); setResult(null); setNeedPhotoWarn(false);
+    setReferralSentFor(null);
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  /* ---- officer state ---- */
+  const [officerLoading, setOfficerLoading] = useState(false);
+  const [reports, setReports] = useState([]);
+  const [referrals, setReferrals] = useState([]);
+  const [correctingId, setCorrectingId] = useState(null);
+  const [correctionChoice, setCorrectionChoice] = useState("");
+  const [retrainQueued, setRetrainQueued] = useState(false);
+
+  const loadReferrals = useCallback(async () => {
+    try {
+      const listed = await storage.list("referral:");
+      const keys = (listed && listed.keys) || [];
+      const items = [];
+      for (const k of keys) {
+        try {
+          const r = await storage.get(k);
+          if (r && r.value) items.push({ ...JSON.parse(r.value), _key: k });
+        } catch {}
+      }
+      items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      setReferrals(items);
+    } catch { setReferrals([]); }
+  }, []);
+
+  const resolveReferral = async (ref) => {
+    try { await storage.set(ref._key, JSON.stringify({ ...ref, resolved: true })); } catch {}
+    loadReferrals();
+  };
+
+  const [correctionsLog, setCorrectionsLog] = useState(0);
+  const loadCorrectionsCount = useCallback(async () => {
+    try {
+      const res = await storage.get("modelCorrectionsCount");
+      setCorrectionsLog(res && res.value ? parseInt(res.value, 10) || 0 : 0);
+    } catch { setCorrectionsLog(0); }
+  }, []);
+  const logCorrection = async () => {
+    const next = correctionsLog + 1;
+    setCorrectionsLog(next);
+    try { await storage.set("modelCorrectionsCount", String(next)); } catch {}
+  };
+
+  const loadReports = useCallback(async () => {
+    setOfficerLoading(true);
+    try {
+      const listed = await storage.list("report:");
+      const keys = (listed && listed.keys) || [];
+      const items = [];
+      for (const k of keys) {
+        try {
+          const r = await storage.get(k);
+          if (r && r.value) items.push({ ...JSON.parse(r.value), _key: k });
+        } catch {}
+      }
+      items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      setReports(items);
+    } catch { setReports([]); }
+    setOfficerLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (screen === "officer") { loadReports(); loadReferrals(); loadCorrectionsCount(); }
+  }, [screen, loadReports, loadReferrals, loadCorrectionsCount]);
+
+  const seedDemoReports = async () => {
+    setOfficerLoading(true);
+    const names = ["Anita Sharma", "Vijay More", "Suresh Deshmukh", "Meena Rao", "Farhan Shaikh"];
+    for (let i = 0; i < 5; i++) {
+      const c = pick(CROPS);
+      const r = runAnalysis({ crop: c });
+      try {
+        await storage.set(
+          `report:${r.id}-seed${i}`,
+          JSON.stringify({ ...r, location: pick(LOCATIONS), farmerName: pick(names) })
+        );
+      } catch {}
+    }
+    await loadReports();
+  };
+
+  const verify = async (report, correctedDisease) => {
+    try {
+      await storage.set(
+        report._key || `report:${report.id}`,
+        JSON.stringify({
+          ...report, verified: true, lowConfidence: false,
+          disease: correctedDisease || report.disease,
+          officerCorrected: !!correctedDisease,
+        })
+      );
+    } catch {}
+    await logCorrection();
+    setCorrectingId(null);
+    setCorrectionChoice("");
+    loadReports();
+  };
+
+  const sendRetrainBatch = () => {
+    setRetrainQueued(true);
+    setTimeout(() => setRetrainQueued(false), 4000);
+  };
+
+  const stats = {
+    total: reports.length,
+    high: reports.filter((r) => r.risk === "High").length,
+    mod: reports.filter((r) => r.risk === "Moderate").length,
+    low: reports.filter((r) => r.risk === "Low").length,
+  };
+  const diseaseCounts = {};
+  const locationCounts = {};
+  reports.forEach((r) => {
+    const d = r.disease || t("healthy");
+    diseaseCounts[d] = (diseaseCounts[d] || 0) + 1;
+    locationCounts[r.location] = (locationCounts[r.location] || 0) + 1;
+  });
+  const topDiseases = Object.entries(diseaseCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const topLocations = Object.entries(locationCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  /* per-location risk breakdown for the geospatial hotspot map */
+  const mapData = Object.keys(LOCATION_COORDS).map((loc) => {
+    const here = reports.filter((r) => r.location === loc);
+    const high = here.filter((r) => r.risk === "High").length;
+    const mod = here.filter((r) => r.risk === "Moderate").length;
+    const low = here.filter((r) => r.risk === "Low").length;
+    const dominant = high > 0 ? "High" : mod > 0 ? "Moderate" : low > 0 ? "Low" : null;
+    return { loc, ...LOCATION_COORDS[loc], count: here.length, high, mod, low, dominant };
+  });
+
+  const logout = () => {
+    setScreen("landing"); setResult(null); setPhotoUrl(null); setPhotoThumb(null);
+    setMenuOpen(false);
+  };
+
+  /* ============================= RENDER ============================= */
+  return (
+    <div className="ag-root ag-body min-h-screen w-full" data-lang={lang || "en"} style={{ background: C.cream, color: C.ink }}>
+      <style>{FONTS}</style>
+
+      {/* ---------------- LANGUAGE GATE ---------------- */}
+      {screen === "lang" && (
+        <div className="min-h-screen w-full flex items-center justify-center p-6" style={{ background: C.forest }}>
+          <div className="ag-fade w-full max-w-md rounded-2xl p-8 text-center" style={{ background: C.white }}>
+            <div className="mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center" style={{ background: C.forest }}>
+              <Sprout color={C.wheat} size={28} />
+            </div>
+            <h1 className="ag-display text-3xl mb-2" style={{ color: C.forest }}>Agricure</h1>
+            <p className="ag-body text-sm mb-1" style={{ color: "rgba(20,35,26,0.6)" }}>Choose your language</p>
+            <p className="ag-body text-xs mb-6" style={{ color: "rgba(20,35,26,0.45)" }}>अपनी भाषा चुनें · तुमची भाषा निवडा · ನಿಮ್ಮ ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ</p>
+            <div className="grid grid-cols-2 gap-3">
+              {LANG_OPTIONS.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => { setLang(l.code); setScreen("landing"); }}
+                  className="ag-body rounded-xl py-4 px-3 text-left transition-transform hover:-translate-y-0.5"
+                  style={{ border: `1.5px solid ${C.line}`, background: C.cream }}
+                >
+                  <div className="ag-display text-xl" style={{ color: C.forest }}>{l.native}</div>
+                  <div className="text-xs mt-0.5" style={{ color: "rgba(20,35,26,0.5)" }}>{l.sub}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- LANDING ---------------- */}
+      {screen === "landing" && (
+        <div>
+          {/* NAV */}
+          <nav className="w-full flex items-center justify-between px-6 md:px-12 py-5" style={{ background: C.forest }}>
+            <div className="flex items-center gap-2">
+              <Sprout color={C.wheat} size={22} />
+              <span className="ag-display text-xl text-white">{t("appName")}</span>
+            </div>
+            <div className="hidden md:flex items-center gap-3">
+              <button onClick={() => setScreen("lang")} className="text-white/70 hover:text-white text-sm flex items-center gap-1">
+                <Languages size={15} /> {LANG_OPTIONS.find((l) => l.code === lang)?.native}
+              </button>
+              <button onClick={() => openLogin("farmer")} className="text-sm text-white/85 hover:text-white px-4 py-2">{t("nav_farmer")}</button>
+              <button onClick={() => openLogin("official")} className="text-sm rounded-full px-4 py-2 font-semibold" style={{ background: C.wheat, color: C.forestDark }}>{t("nav_official")}</button>
+            </div>
+            <button className="md:hidden text-white" onClick={() => setMenuOpen((v) => !v)}>
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </nav>
+
+          {menuOpen && (
+            <div className="md:hidden flex flex-col gap-2 px-6 py-4" style={{ background: C.forestDark }}>
+              <button onClick={() => setScreen("lang")} className="text-white/85 text-left py-2 flex items-center gap-2"><Languages size={16} /> {t("appName")} · {LANG_OPTIONS.find((l) => l.code === lang)?.native}</button>
+              <button onClick={() => openLogin("farmer")} className="text-white/85 text-left py-2">{t("nav_farmer")}</button>
+              <button onClick={() => openLogin("official")} className="text-left py-2 font-semibold rounded-lg px-3" style={{ background: C.wheat, color: C.forestDark }}>{t("nav_official")}</button>
+            </div>
+          )}
+
+          {/* HERO */}
+          <section className="ag-rows w-full px-6 md:px-12 pt-16 pb-20 md:pt-24 md:pb-28" style={{ background: `linear-gradient(180deg, ${C.forest}, ${C.forestDark})` }}>
+            <div className="max-w-3xl mx-auto text-center ag-fade">
+              <span className="inline-block mb-5 text-xs tracking-widest uppercase" style={{ color: C.wheat }}>{t("heroEyebrow")}</span>
+              <h1 className="ag-display text-white leading-tight text-4xl md:text-6xl">
+                <span className="block">{t("heroLine1")}</span>
+                <span className="block italic" style={{ color: C.wheat }}>{t("heroLine2")}</span>
+              </h1>
+              <p className="ag-body mt-6 text-white/70 max-w-xl mx-auto text-sm md:text-base">{t("heroSub")}</p>
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button onClick={() => openLogin("farmer")} className="ag-body inline-flex items-center gap-2 rounded-full px-7 py-3 font-semibold" style={{ background: C.wheat, color: C.forestDark }}>
+                  {t("heroCtaFarmer")} <ArrowRight size={16} />
+                </button>
+                <button onClick={() => openLogin("official")} className="ag-body inline-flex items-center gap-2 rounded-full px-7 py-3 font-semibold border border-white/40 text-white hover:bg-white/10">
+                  <Landmark size={16} /> {t("heroCtaOfficial")}
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* HOW IT WORKS */}
+          <section className="px-6 md:px-12 py-16 max-w-5xl mx-auto">
+            <span className="text-xs tracking-widest uppercase" style={{ color: C.wheatDeep }}>{t("howEyebrow")}</span>
+            <div className="grid md:grid-cols-3 gap-6 mt-6">
+              {[
+                { icon: Camera, t: t("how1t"), d: t("how1d") },
+                { icon: Sparkles, t: t("how2t"), d: t("how2d") },
+                { icon: ClipboardList, t: t("how3t"), d: t("how3d") },
+              ].map((s, i) => (
+                <div key={i} className="rounded-xl p-6" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+                  <s.icon size={22} color={C.moss} />
+                  <h3 className="ag-display text-xl mt-4" style={{ color: C.forest }}>{s.t}</h3>
+                  <p className="ag-body text-sm mt-2" style={{ color: "rgba(20,35,26,0.6)" }}>{s.d}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* TWO PANELS */}
+          <section className="px-6 md:px-12 py-16 max-w-5xl mx-auto">
+            <span className="text-xs tracking-widest uppercase" style={{ color: C.wheatDeep }}>{t("panelsEyebrow")}</span>
+            <div className="grid md:grid-cols-2 gap-6 mt-6">
+              <div className="rounded-2xl p-7" style={{ background: C.forest }}>
+                <User color={C.wheat} size={26} />
+                <h3 className="ag-display text-2xl text-white mt-4">{t("panelFarmerT")}</h3>
+                <p className="ag-body text-white/70 text-sm mt-2 mb-6">{t("panelFarmerD")}</p>
+                <button onClick={() => openLogin("farmer")} className="ag-body inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold" style={{ background: C.wheat, color: C.forestDark }}>
+                  {t("continueLabel")} <ChevronRight size={16} />
+                </button>
+              </div>
+              <div className="rounded-2xl p-7" style={{ background: C.creamDeep, border: `1px solid ${C.line}` }}>
+                <Landmark color={C.forest} size={26} />
+                <h3 className="ag-display text-2xl mt-4" style={{ color: C.forest }}>{t("panelOfficialT")}</h3>
+                <p className="ag-body text-sm mt-2 mb-6" style={{ color: "rgba(20,35,26,0.65)" }}>{t("panelOfficialD")}</p>
+                <button onClick={() => openLogin("official")} className="ag-body inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold" style={{ background: C.forest, color: "white" }}>
+                  {t("continueLabel")} <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <footer className="text-center py-8 text-xs" style={{ color: "rgba(20,35,26,0.4)" }}>
+            {t("appName")} · Prototype for Smart India Hackathon · demo data only
+          </footer>
+        </div>
+      )}
+
+      {/* ---------------- LOGIN ---------------- */}
+      {screen === "login" && (
+        <div className="min-h-screen w-full flex items-center justify-center p-6" style={{ background: C.forest }}>
+          <div className="ag-fade w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: C.white }}>
+            <div className="px-6 py-5 flex items-center justify-between" style={{ background: C.forest }}>
+              <span className="ag-display text-xl text-white">{t("appName")}</span>
+              <button onClick={() => setScreen("landing")} className="text-white/80 text-sm">{t("backHome")}</button>
+            </div>
+            <div className="p-6">
+              <Pill color={role === "farmer" ? C.moss : C.forest}>{role === "farmer" ? t("loginFarmerTag") : t("loginOfficialTag")}</Pill>
+              <h2 className="ag-display text-2xl mt-3" style={{ color: C.forest }}>{t("loginTitle")}</h2>
+              <p className="ag-body text-sm mt-1 mb-5" style={{ color: "rgba(20,35,26,0.6)" }}>
+                {role === "farmer" ? t("loginSubFarmer") : t("loginSubOfficial")}
+              </p>
+
+              <div className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 mb-4 text-xs" style={{ background: "#fff7d6", border: "1px dashed #cbb148" }}>
+                <span>{t("demoLabel")} <strong>{DEMO_CREDS[role].email}</strong></span>
+                <button type="button" onClick={autofill} className="underline font-semibold" style={{ color: C.forest }}>{t("autofill")}</button>
+              </div>
+
+              {loginError && (
+                <p className="text-xs font-semibold mb-3" style={{ color: C.red }}>{t("loginErr")}</p>
+              )}
+
+              <form onSubmit={submitLogin} className="ag-body space-y-3">
+                <div>
+                  <label className="text-xs font-semibold block mb-1">{t("nameLabel")}</label>
+                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="w-full rounded-lg px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}` }} placeholder={DEMO_CREDS[role].name} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold block mb-1">{t("emailLabel")}</label>
+                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className="w-full rounded-lg px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}` }} placeholder="you@example.com" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold block mb-1">{t("passwordLabel")}</label>
+                  <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    className="w-full rounded-lg px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}` }} placeholder="********" />
+                </div>
+                <button type="submit" className="w-full rounded-lg py-2.5 font-semibold text-sm mt-2" style={{ background: C.forest, color: "white" }}>
+                  {role === "farmer" ? t("submitFarmer") : t("submitOfficial")}
+                </button>
+              </form>
+
+              <button onClick={() => setRole(role === "farmer" ? "official" : "farmer")} className="w-full text-center text-xs mt-4 underline" style={{ color: "rgba(20,35,26,0.6)" }}>
+                {role === "farmer" ? t("panelOfficialT") : t("panelFarmerT")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- FARMER APP ---------------- */}
+      {screen === "farmer" && (
+        <div className="min-h-screen">
+          <div className="flex items-center justify-between px-6 py-4" style={{ background: C.forest }}>
+            <div className="flex items-center gap-2">
+              <Sprout color={C.wheat} size={20} />
+              <span className="ag-display text-lg text-white">{t("appName")}</span>
+              <Pill color={C.wheat}>{t("nav_farmer")}</Pill>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <button onClick={() => { setNotifOpen((v) => !v); setNotifReadCount(history.filter((h) => h.risk === "High").length); }} className="text-white/90 relative">
+                  <Bell size={19} />
+                  {history.filter((h) => h.risk === "High").length > notifReadCount && (
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold" style={{ background: C.wheat, color: C.forestDark }}>
+                      {history.filter((h) => h.risk === "High").length - notifReadCount}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div className="absolute right-0 mt-2 w-72 rounded-xl shadow-lg z-10 overflow-hidden" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+                    <div className="px-4 py-2.5 flex items-center justify-between" style={{ background: C.creamDeep }}>
+                      <span className="text-xs font-semibold" style={{ color: C.forest }}>{t("notifTitle")}</span>
+                      <button onClick={() => setNotifOpen(false)}><X size={14} color={C.forest} /></button>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {history.filter((h) => h.risk === "High").length === 0 ? (
+                        <p className="text-xs px-4 py-4" style={{ color: "rgba(20,35,26,0.5)" }}>{t("notifEmpty")}</p>
+                      ) : history.filter((h) => h.risk === "High").map((h) => (
+                        <div key={h.id} className="px-4 py-2.5 text-xs border-b flex items-start gap-2" style={{ borderColor: C.line }}>
+                          <AlertTriangle size={13} color={C.red} className="flex-shrink-0 mt-0.5" />
+                          <span><strong>{h.crop}</strong> · {h.isHealthy ? t("healthy") : h.disease} — {t("notifHigh")} {h.location}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button onClick={logout} className="text-white/85 text-sm flex items-center gap-1"><LogOut size={15} /> {t("logout")}</button>
+            </div>
+          </div>
+
+          <div className="max-w-4xl mx-auto px-5 py-8">
+            <h2 className="ag-display text-2xl" style={{ color: C.forest }}>{t("fGreeting")}, {farmerName || DEMO_CREDS.farmer.name}</h2>
+            <p className="ag-body text-sm mb-6" style={{ color: "rgba(20,35,26,0.6)" }}>{t("fSubGreeting")}</p>
+
+            <div className="rounded-2xl p-6 mb-6" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+              <h3 className="ag-display text-xl" style={{ color: C.forest }}>{t("uploadTitle")}</h3>
+              <p className="ag-body text-sm mb-4" style={{ color: "rgba(20,35,26,0.6)" }}>{t("uploadDesc")}</p>
+
+              <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="text-xs font-semibold block mb-1">{t("cropLabel")}</label>
+                  <select value={crop} onChange={(e) => setCrop(e.target.value)} className="w-full rounded-lg px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}` }}>
+                    {CROPS.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold block mb-1">{t("locationLabel")}</label>
+                  <select value={location} onChange={(e) => setLocation(e.target.value)} className="w-full rounded-lg px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}` }}>
+                    {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="rounded-xl p-4 mb-4" style={{ background: C.creamDeep, border: `1px solid ${C.line}` }}>
+                <p className="text-sm font-semibold flex items-center gap-2 mb-1" style={{ color: C.forest }}><Wifi size={15} /> {t("sensorTitle")}</p>
+                <p className="text-xs mb-3" style={{ color: "rgba(20,35,26,0.6)" }}>{t("sensorDesc")}</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold block mb-1 flex items-center gap-1"><Bug size={12} /> {t("trapTypeLabel")}</label>
+                    <select value={trapType} onChange={(e) => setTrapType(e.target.value)} className="w-full rounded-lg px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}` }}>
+                      {TRAP_TYPES.map((tt) => <option key={tt} value={tt}>{tt}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold block mb-1">{t("trapCountLabel")}</label>
+                    <input type="number" min="0" value={trapCount} onChange={(e) => setTrapCount(e.target.value)} placeholder="0"
+                      className="w-full rounded-lg px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}` }} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold block mb-1">{t("soilMoistureLabel")}</label>
+                    <input type="number" min="0" max="100" value={soilMoisture} onChange={(e) => setSoilMoisture(e.target.value)} placeholder="—"
+                      className="w-full rounded-lg px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}` }} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold block mb-1">{t("leafWetnessLabel")}</label>
+                    <input type="number" min="0" max="24" value={leafWetness} onChange={(e) => setLeafWetness(e.target.value)} placeholder="—"
+                      className="w-full rounded-lg px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}` }} />
+                  </div>
+                </div>
+              </div>
+
+              {!photoUrl && (
+                <div className="rounded-xl border-2 border-dashed p-8 text-center" style={{ borderColor: "#9fb3c4" }}>
+                  <ImagePlus className="mx-auto mb-3" color={C.moss} size={30} />
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <label className="ag-body cursor-pointer inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-sm" style={{ background: C.moss, color: "white" }}>
+                      <Upload size={15} /> {t("uploadBtn")}
+                      <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
+                    </label>
+                    <button onClick={useDemoPhoto} className="ag-body inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-sm" style={{ border: `1px solid ${C.line}` }}>
+                      <Camera size={15} /> {t("demoPhotoBtn")}
+                    </button>
+                  </div>
+                  {needPhotoWarn && <p className="text-xs mt-3 font-semibold" style={{ color: C.red }}>{t("needPhoto")}</p>}
+                </div>
+              )}
+
+              {photoUrl && (
+                <div>
+                  <div className="rounded-xl overflow-hidden mb-4 relative" style={{ aspectRatio: "4/3", background: C.creamDeep, border: `1px solid ${C.line}` }}>
+                    {photoUrl !== "demo" ? (
+                      <img src={photoUrl} alt="crop" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                        <Sprout size={40} color={C.moss} />
+                        <span className="text-xs" style={{ color: "rgba(20,35,26,0.5)" }}>Demo photo — {crop}</span>
+                      </div>
+                    )}
+                    <button onClick={resetUpload} className="absolute top-2 right-2 text-xs px-2 py-1 rounded-md" style={{ background: "rgba(255,255,255,0.9)", color: C.forest }}>
+                      <X size={13} className="inline" />
+                    </button>
+                  </div>
+                  <button onClick={analyse} disabled={analyzing} className="ag-body w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 font-semibold text-sm" style={{ background: C.forest, color: "white", opacity: analyzing ? 0.7 : 1 }}>
+                    {analyzing ? <RefreshCw size={15} className="animate-spin" /> : <Sparkles size={15} />}
+                    {analyzing ? t("analyzing") : t("analyzeBtn")}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {result && (
+              <div className="ag-fade rounded-2xl p-6 mb-6" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+                <h3 className="ag-display text-xl mb-4" style={{ color: C.forest }}>{t("resultTitle")}</h3>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="text-xs px-3 py-1.5 rounded-lg" style={{ background: C.creamDeep }}><ThermometerSun size={12} className="inline mr-1" />{t("weatherTemp")} {result.temp}°C</div>
+                  <div className="text-xs px-3 py-1.5 rounded-lg" style={{ background: C.creamDeep }}><Droplets size={12} className="inline mr-1" />{t("weatherHumidity")} {result.humidity}%</div>
+                  <div className="text-xs px-3 py-1.5 rounded-lg" style={{ background: C.creamDeep }}><CloudRain size={12} className="inline mr-1" />{t("weatherRain")} {result.rainfall}mm</div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                  <div className="flex justify-between border-b py-2 text-sm" style={{ borderColor: C.line }}>
+                    <span style={{ color: "rgba(20,35,26,0.55)" }}>{t("diagnosisLabel")}</span>
+                    <strong>{result.isHealthy ? t("healthy") : result.disease}</strong>
+                  </div>
+                  <div className="flex justify-between border-b py-2 text-sm" style={{ borderColor: C.line }}>
+                    <span style={{ color: "rgba(20,35,26,0.55)" }}>{t("confidenceLabel")}</span>
+                    <strong>{result.confidence}%</strong>
+                  </div>
+                  <div className="flex justify-between border-b py-2 text-sm" style={{ borderColor: C.line }}>
+                    <span style={{ color: "rgba(20,35,26,0.55)" }}>{t("severityLabel")}</span>
+                    <Pill color={riskColor(result.severity === "High" ? "High" : result.severity === "Moderate" ? "Moderate" : "Low")}>{t(`severity_${result.severity}`)}</Pill>
+                  </div>
+                  <div className="flex justify-between border-b py-2 text-sm" style={{ borderColor: C.line }}>
+                    <span style={{ color: "rgba(20,35,26,0.55)" }}>{t("riskLabel")}</span>
+                    <Pill color={riskColor(result.risk)}>{t(`severity_${result.risk}`)}</Pill>
+                  </div>
+                </div>
+
+                {!result.isHealthy && (
+                  <div className="mb-4">
+                    <p className="text-xs font-semibold mb-2" style={{ color: "rgba(20,35,26,0.55)" }}>{t("actionsLabel")}</p>
+                    <ul className="space-y-1.5">
+                      {ACTIONS[result.severity].map((a, i) => (
+                        <li key={i} className="flex gap-2 text-sm">
+                          <CheckCircle2 size={16} color={C.green} className="flex-shrink-0 mt-0.5" />
+                          <span>{a}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {result.lowConfidence ? (
+                  <div className="rounded-lg p-3 text-xs flex gap-2" style={{ background: "#fff3dc", color: C.amber }}>
+                    <AlertTriangle size={16} className="flex-shrink-0" /> {t("lowConfNote")}
+                  </div>
+                ) : !result.isHealthy && (
+                  <div className="rounded-lg p-3 text-xs flex gap-2" style={{ background: "#e7f5e7", color: C.green }}>
+                    <ShieldCheck size={16} className="flex-shrink-0" /> {t("verifiedNote")}
+                  </div>
+                )}
+
+                {!result.isHealthy && (
+                  <div className="flex items-center gap-2 mt-3 text-xs" style={{ color: "rgba(20,35,26,0.55)" }}>
+                    <Clock size={14} /> {t("followupLabel")} {result.followupDays} {t("days")}
+                  </div>
+                )}
+
+                {!result.isHealthy && communityCount > 0 && (
+                  <div className="flex items-center gap-2 mt-3 text-xs rounded-lg p-2.5" style={{ background: "#fff3dc", color: C.amber }}>
+                    <Bug size={14} className="flex-shrink-0" /> {communityCount} {t("communityNote")}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ---- Treatment & Safe Use ---- */}
+            {result && !result.isHealthy && TREATMENT_MAP[result.disease] && (
+              <div className="ag-fade rounded-2xl p-6 mb-6" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+                <h3 className="ag-display text-xl mb-1 flex items-center gap-2" style={{ color: C.forest }}><FlaskConical size={20} color={C.moss} /> {t("treatmentTitle")}</h3>
+                <div className="grid sm:grid-cols-2 gap-3 my-4">
+                  <div className="flex justify-between border-b py-2 text-sm" style={{ borderColor: C.line }}>
+                    <span style={{ color: "rgba(20,35,26,0.55)" }}>{t("treatmentCategory")}</span>
+                    <strong className="text-right">{TREATMENT_MAP[result.disease].category}</strong>
+                  </div>
+                  <div className="flex justify-between border-b py-2 text-sm" style={{ borderColor: C.line }}>
+                    <span style={{ color: "rgba(20,35,26,0.55)" }}>{t("treatmentPhi")}</span>
+                    <strong>{TREATMENT_MAP[result.disease].phi}</strong>
+                  </div>
+                </div>
+                <p className="text-sm mb-3"><span className="font-semibold">{t("treatmentTiming")}: </span>{TREATMENT_MAP[result.disease].timing}</p>
+                <p className="text-sm mb-4"><span className="font-semibold">{t("treatmentNote")}: </span>{TREATMENT_MAP[result.disease].note}</p>
+                <p className="text-xs font-semibold mb-2 flex items-center gap-1" style={{ color: "rgba(20,35,26,0.55)" }}><ShieldCheck size={13} /> {t("safetyTitle")}</p>
+                <ul className="space-y-1.5 mb-4">
+                  {GENERIC_SAFETY.map((s, i) => (
+                    <li key={i} className="flex gap-2 text-sm">
+                      <CheckCircle2 size={15} color={C.green} className="flex-shrink-0 mt-0.5" />
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="rounded-lg p-3 text-xs" style={{ background: C.creamDeep, color: "rgba(20,35,26,0.65)" }}>
+                  {t("labelDisclaimer")}
+                </div>
+              </div>
+            )}
+
+            {/* ---- Referral request ---- */}
+            {result && !result.isHealthy && (
+              <div className="ag-fade rounded-2xl p-6 mb-6" style={{ background: C.forest }}>
+                <h3 className="ag-display text-xl mb-1 flex items-center gap-2 text-white"><Stethoscope size={20} color={C.wheat} /> {t("referralTitle")}</h3>
+                <p className="text-sm mb-4 text-white/70">{t("referralDesc")}</p>
+                {referralSentFor === result.id ? (
+                  <div className="rounded-lg p-3 text-sm flex items-center gap-2" style={{ background: "rgba(255,255,255,0.12)", color: C.wheat }}>
+                    <CheckCircle2 size={16} /> {t("referralSent")}
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <select value={referralReason} onChange={(e) => setReferralReason(e.target.value)} className="flex-1 rounded-lg px-3 py-2 text-sm">
+                      {REFERRAL_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    <button onClick={() => requestReferral(result)} className="ag-body inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 font-semibold text-sm" style={{ background: C.wheat, color: C.forestDark }}>
+                      <FlaskConical size={15} /> {t("referralBtn")}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="rounded-2xl p-6" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+              <h3 className="ag-display text-xl mb-4" style={{ color: C.forest }}>{t("historyTitle")}</h3>
+              {history.length === 0 ? (
+                <p className="text-sm" style={{ color: "rgba(20,35,26,0.5)" }}>{t("historyEmpty")}</p>
+              ) : (
+                <div className="space-y-2">
+                  {history.map((h) => (
+                    <div key={h.id} className="flex items-center justify-between text-sm py-2 border-b" style={{ borderColor: C.line }}>
+                      <div className="flex items-center gap-3">
+                        {h.thumb ? <img src={h.thumb} alt="" className="w-9 h-9 rounded-md object-cover" /> : <div className="w-9 h-9 rounded-md flex items-center justify-center" style={{ background: C.creamDeep }}><Sprout size={16} color={C.moss} /></div>}
+                        <div>
+                          <div className="font-medium">{h.crop} · {h.isHealthy ? t("healthy") : h.disease}</div>
+                          <div className="text-xs" style={{ color: "rgba(20,35,26,0.45)" }}>{new Date(h.timestamp).toLocaleString()}</div>
+                        </div>
+                      </div>
+                      <Pill color={riskColor(h.risk)}>{t(`severity_${h.risk}`)}</Pill>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- OFFICIAL DASHBOARD ---------------- */}
+      {screen === "officer" && (
+        <div className="min-h-screen">
+          <div className="flex items-center justify-between px-6 py-4" style={{ background: C.forest }}>
+            <div className="flex items-center gap-2">
+              <Landmark color={C.wheat} size={20} />
+              <span className="ag-display text-lg text-white">{t("appName")}</span>
+              <Pill color={C.wheat}>{t("nav_official")}</Pill>
+            </div>
+            <button onClick={logout} className="text-white/85 text-sm flex items-center gap-1"><LogOut size={15} /> {t("logout")}</button>
+          </div>
+
+          <div className="max-w-5xl mx-auto px-5 py-8">
+            <h2 className="ag-display text-2xl" style={{ color: C.forest }}>{t("officerHeading")}</h2>
+            <p className="ag-body text-sm mb-2" style={{ color: "rgba(20,35,26,0.6)" }}>{t("officerSub")}</p>
+            <p className="ag-body text-xs mb-6 flex items-center gap-1" style={{ color: "rgba(20,35,26,0.45)" }}><Database size={12} /> {t("dbNote")}</p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              <StatCard label={t("statTotal")} value={stats.total} />
+              <StatCard label={t("statHigh")} value={stats.high} color={C.red} />
+              <StatCard label={t("statMod")} value={stats.mod} color={C.amber} />
+              <StatCard label={t("statLow")} value={stats.low} color={C.green} />
+            </div>
+
+            <div className="flex gap-2 mb-6">
+              <button onClick={loadReports} className="ag-body inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold" style={{ border: `1px solid ${C.line}` }}>
+                <RefreshCw size={14} className={officerLoading ? "animate-spin" : ""} /> {t("refresh")}
+              </button>
+              <button onClick={seedDemoReports} className="ag-body inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold" style={{ background: C.moss, color: "white" }}>
+                <Sparkles size={14} /> {t("seedDemo")}
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div className="rounded-xl p-5" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+                <p className="text-xs font-semibold mb-3" style={{ color: "rgba(20,35,26,0.55)" }}>{t("topDiseases")}</p>
+                {topDiseases.length === 0 ? <p className="text-sm" style={{ color: "rgba(20,35,26,0.4)" }}>—</p> : topDiseases.map(([d, n]) => (
+                  <div key={d} className="flex justify-between text-sm py-1.5 border-b" style={{ borderColor: C.line }}>
+                    <span>{d}</span><strong>{n}</strong>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-xl p-5" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+                <p className="text-xs font-semibold mb-3" style={{ color: "rgba(20,35,26,0.55)" }}>{t("hotspots")}</p>
+                {topLocations.length === 0 ? <p className="text-sm" style={{ color: "rgba(20,35,26,0.4)" }}>—</p> : topLocations.map(([l, n]) => (
+                  <div key={l} className="flex justify-between text-sm py-1.5 border-b" style={{ borderColor: C.line }}>
+                    <span className="flex items-center gap-1"><MapPin size={12} /> {l}</span><strong>{n}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ---- Geospatial hotspot map (demo) ---- */}
+            <div className="rounded-xl p-5 mb-6" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+              <p className="text-xs font-semibold mb-1 flex items-center gap-1.5" style={{ color: "rgba(20,35,26,0.55)" }}><Map2 size={14} /> {t("mapTitle")}</p>
+              <p className="text-xs mb-3" style={{ color: "rgba(20,35,26,0.4)" }}>{t("mapNote")}</p>
+              <div className="rounded-lg overflow-hidden relative" style={{ background: "#e8f0e4", border: `1px solid ${C.line}`, aspectRatio: "4/3" }}>
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                  <rect x="0" y="0" width="100" height="100" fill="#e8f0e4" />
+                  <path d="M20 15 L70 8 L88 22 L92 40 L80 55 L82 72 L60 92 L38 88 L25 70 L10 60 L12 35 Z"
+                    fill="#d7e6cf" stroke="#b6cbab" strokeWidth="0.6" />
+                  {mapData.map((m) => {
+                    const r = 2.5 + Math.min(6, m.count * 1.4);
+                    const col = m.dominant === "High" ? C.red : m.dominant === "Moderate" ? C.amber : m.dominant === "Low" ? C.green : "#9fb3a3";
+                    return (
+                      <g key={m.loc}>
+                        {m.count > 0 && <circle cx={m.x} cy={m.y} r={r + 3} fill={col} opacity="0.18" />}
+                        <circle cx={m.x} cy={m.y} r={r} fill={col} opacity="0.85" stroke="white" strokeWidth="0.6" />
+                        <text x={m.x} y={m.y - r - 2.5} fontSize="3.4" textAnchor="middle" fill={C.ink} fontWeight="600">{m.loc}</text>
+                        {m.count > 0 && <text x={m.x} y={m.y + 1.2} fontSize="3" textAnchor="middle" fill="white" fontWeight="700">{m.count}</text>}
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+              <div className="flex flex-wrap gap-3 mt-3 text-xs">
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: C.red }} /> {t("severity_High")}</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: C.amber }} /> {t("severity_Moderate")}</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: C.green }} /> {t("severity_Low")}</span>
+              </div>
+            </div>
+
+            {/* ---- Referral queue ---- */}
+            <div className="rounded-xl p-5 mb-6" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+              <p className="text-xs font-semibold mb-3 flex items-center gap-1.5" style={{ color: "rgba(20,35,26,0.55)" }}><Stethoscope size={14} /> {t("referralQueueTitle")}</p>
+              {referrals.length === 0 ? (
+                <p className="text-sm" style={{ color: "rgba(20,35,26,0.5)" }}>{t("referralEmpty")}</p>
+              ) : (
+                <div className="space-y-2">
+                  {referrals.map((r) => (
+                    <div key={r.id} className="flex items-center justify-between gap-2 text-sm py-2 border-b" style={{ borderColor: C.line }}>
+                      <div>
+                        <div className="font-medium">{r.farmerName} · {r.crop}{r.disease ? ` · ${r.disease}` : ""}</div>
+                        <div className="text-xs" style={{ color: "rgba(20,35,26,0.5)" }}><MapPin size={11} className="inline mr-1" />{r.location} — {r.reason}</div>
+                      </div>
+                      {r.resolved ? (
+                        <Pill color={C.green}>{t("resolvedStatus")}</Pill>
+                      ) : (
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Pill color={C.amber}>{t("pendingReferral")}</Pill>
+                          <button onClick={() => resolveReferral(r)} className="text-xs font-semibold underline" style={{ color: C.forest }}>{t("resolveBtn")}</button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ---- Model improvement loop ---- */}
+            <div className="rounded-xl p-5 mb-6" style={{ background: C.forest }}>
+              <p className="text-sm font-semibold mb-1 flex items-center gap-2 text-white"><BrainCog size={16} color={C.wheat} /> {t("modelLoopTitle")}</p>
+              <p className="text-xs mb-4 text-white/65">{t("modelLoopDesc")}</p>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <HistoryIcon size={16} color={C.wheat} />
+                  <span className="text-white text-sm"><strong>{correctionsLog}</strong> {t("correctionsLabel")}</span>
+                </div>
+                <button onClick={sendRetrainBatch} disabled={retrainQueued} className="ag-body inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold" style={{ background: C.wheat, color: C.forestDark, opacity: retrainQueued ? 0.7 : 1 }}>
+                  {retrainQueued ? <RefreshCw size={13} className="animate-spin" /> : <TrendingUp size={13} />}
+                  {t("retrainBtn")}
+                </button>
+              </div>
+              {retrainQueued && (
+                <p className="text-xs mt-2 text-white/80">{t("retrainingMsg")}</p>
+              )}
+            </div>
+
+            <div className="rounded-xl p-5" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+              <p className="text-xs font-semibold mb-3" style={{ color: "rgba(20,35,26,0.55)" }}>{t("recentReports")}</p>
+              {officerLoading ? (
+                <p className="text-sm" style={{ color: "rgba(20,35,26,0.5)" }}>{t("loadingReports")}</p>
+              ) : reports.length === 0 ? (
+                <p className="text-sm" style={{ color: "rgba(20,35,26,0.5)" }}>{t("noReports")}</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left" style={{ color: "rgba(20,35,26,0.5)" }}>
+                        <th className="py-2 pr-3 font-medium">{t("tblFarmer")}</th>
+                        <th className="py-2 pr-3 font-medium">{t("tblCrop")}</th>
+                        <th className="py-2 pr-3 font-medium">{t("tblIssue")}</th>
+                        <th className="py-2 pr-3 font-medium">{t("tblSeverity")}</th>
+                        <th className="py-2 pr-3 font-medium">{t("tblRisk")}</th>
+                        <th className="py-2 pr-3 font-medium">{t("tblStatus")}</th>
+                        <th className="py-2 pr-3 font-medium">{t("tblAction")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reports.slice(0, 15).map((r) => (
+                        <React.Fragment key={r.id}>
+                          <tr style={{ borderTop: `1px solid ${C.line}` }}>
+                            <td className="py-2 pr-3">{r.farmerName || "—"}</td>
+                            <td className="py-2 pr-3">{r.crop}</td>
+                            <td className="py-2 pr-3 flex items-center gap-1">
+                              {r.isHealthy ? t("healthy") : r.disease}
+                              {r.sensor && <Wifi size={11} color={C.moss} title={t("tblSensor")} />}
+                              {r.officerCorrected && <Pill color={C.forest}>✓</Pill>}
+                            </td>
+                            <td className="py-2 pr-3">{t(`severity_${r.severity}`)}</td>
+                            <td className="py-2 pr-3"><Pill color={riskColor(r.risk)}>{t(`severity_${r.risk}`)}</Pill></td>
+                            <td className="py-2 pr-3">
+                              {r.verified ? <span style={{ color: C.green }}>{t("verified")}</span> : <span style={{ color: C.amber }}>{t("pending")}</span>}
+                            </td>
+                            <td className="py-2 pr-3">
+                              {!r.verified && correctingId !== r.id && (
+                                <div className="flex items-center gap-2">
+                                  <button onClick={() => verify(r)} className="text-xs font-semibold underline" style={{ color: C.forest }}>{t("agreeBtn")}</button>
+                                  <button onClick={() => { setCorrectingId(r.id); setCorrectionChoice((DISEASE_MAP[r.crop] || [])[0] || ""); }} className="text-xs font-semibold underline" style={{ color: C.amber }}>{t("correctBtn")}</button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                          {correctingId === r.id && (
+                            <tr style={{ background: C.creamDeep }}>
+                              <td colSpan={7} className="py-2 px-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-xs font-semibold">{t("selectActualLabel")}</span>
+                                  <select value={correctionChoice} onChange={(e) => setCorrectionChoice(e.target.value)} className="rounded-lg px-2 py-1 text-xs" style={{ border: `1px solid ${C.line}` }}>
+                                    {(DISEASE_MAP[r.crop] || []).map((d) => <option key={d} value={d}>{d}</option>)}
+                                  </select>
+                                  <button onClick={() => verify(r, correctionChoice)} className="text-xs font-semibold rounded-full px-3 py-1.5" style={{ background: C.forest, color: "white" }}>{t("verifyBtn")}</button>
+                                  <button onClick={() => setCorrectingId(null)} className="text-xs underline" style={{ color: "rgba(20,35,26,0.5)" }}>✕</button>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<AgricureApp />);
+
+</script>
+
+<script>
+(function () {
+  var src = document.getElementById("app-source").textContent;
+  var result = Babel.transform(src, {
+    presets: [["react", { runtime: "classic" }]]
+  });
+  (0, eval)(result.code);
+})();
+</script>
+
+</body>
+</html>

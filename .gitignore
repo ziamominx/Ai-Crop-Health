@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# uploads
+backend/uploads/
+!backend/uploads/.gitkeep
+
+# sqlite demo db
+*.db
+
+# frontend
+node_modules/
+frontend/dist/
+
+# local tooling metadata
+.freebuff/

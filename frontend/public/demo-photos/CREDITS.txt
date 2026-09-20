@@ -1,0 +1,52 @@
+Demo photos: real CC-licensed photographs from Wikimedia Commons.
+Files marked SYNTHETIC are generated leaf images (not photographs).
+
+tomato.jpg
+  file:     File:Alternaria solani a1 (3).jpg
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain
+
+tomato-healthy.jpg
+  file:     File:Mr. Stripey Heirloom Tomato leaf.jpg
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain
+
+wheat.jpg
+  file:     File:Dz. r?sa z.tritik?le 2015.jpg
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain
+
+wheat-healthy.jpg
+  file:     File:Crops Kansas AST 20010624.jpg
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain
+
+cotton.jpg
+  file:     File:Starr-091221-0779-Gossypium tomentosum-leaves-Kaukaukapapa-Kahoolawe (24964911716).jpg
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain
+
+cotton-healthy.jpg
+  file:     Wikimedia Commons
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain
+
+rice.jpg
+  file:     File:Rice blast symptoms.jpg
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain
+
+rice-healthy.jpg
+  file:     File:Young paddy in promise.jpg
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain
+
+onion.jpg
+  file:     File:Schnittlauch Stemphyllium botryosum - Jan Hinrichs-Berger, LTZ Augustenberg.jpg
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain
+
+onion-healthy.jpg
+  file:     Wikimedia Commons
+  source:   https://commons.wikimedia.org/
+  license:  CC / public domain

@@ -1,0 +1,11 @@
+INFO:     Started server process [7152]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+======================================================================
+[Agricure] WARNING: PostgreSQL unavailable ((psycopg.OperationalError) connection failed: connection to server at "127.0.0.1", port 5432 failed: could not receive d).
+[Agricure] Falling back to local SQLite demo database: sqlite:///./agricure_dev.db
+[Agricure] For the real PostgreSQL setup see README.md (Step 2).
+======================================================================
