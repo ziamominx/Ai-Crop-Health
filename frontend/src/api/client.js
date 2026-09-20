@@ -94,6 +94,11 @@ export const api = {
   queueRetraining: () => request('POST', '/api/model/retraining/queue', { body: {} }),
   // admin
   adminStats: () => request('GET', '/api/admin/stats'),
+  // read-only snapshot of every table, fetched with the JWT (never a token in a URL)
+  databaseViewHtml: async (limit = 200) => {
+    const res = await request('GET', `/api/admin/database-view?limit=${limit}`, { raw: true })
+    return res.text()
+  },
   adminUsers: () => request('GET', '/api/admin/users'),
   adminSetUserActive: (id, isActive) => request('PATCH', `/api/admin/users/${id}/active?is_active=${isActive}`),
   auditLogs: () => request('GET', '/api/admin/audit-logs'),

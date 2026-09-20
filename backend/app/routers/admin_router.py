@@ -1,12 +1,15 @@
 """Admin dashboard — users, system statistics, model overview, audit log."""
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import admin_required
-from app.database import get_db
+from app.config import settings
+from app.database import engine, get_db
 from app.models import (AuditLog, CropReport, ModelFeedback, ModelVersion,
                         Notification, Referral, User)
 from app.schemas.schemas import AdminStats, ModelVersionOut, UserOut
+from app.services.db_view import generate_database_view
 from app.utils.audit import audit
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -51,6 +54,24 @@ def set_user_active(user_id: int, is_active: bool,
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.get("/database-view", response_class=HTMLResponse)
+def database_view(limit: int = 200, current: User = Depends(admin_required),
+                  db: Session = Depends(get_db)):
+    """Admin-only read-only snapshot of every table, rendered as a standalone page.
+
+    The admin panel fetches this with its JWT and opens the result in a new tab,
+    so no authentication token is ever put in a URL.
+    """
+    page = generate_database_view(
+        engine,
+        limit=max(10, min(limit, 1000)),
+        image_base=settings.PUBLIC_BASE_URL,
+    )
+    audit(db, current.id, "DATABASE_VIEWED", "database", None, {"limit": limit})
+    db.commit()
+    return HTMLResponse(content=page)
 
 
 @router.get("/audit-logs", response_model=list[dict])

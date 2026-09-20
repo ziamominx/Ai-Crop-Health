@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { C, riskColor } from '../api/theme.js'
 import {
-  BrainCog, Database, ImagePlus, LogOut, RefreshCw, ShieldCheck, Sprout, UsersIcon,
+  BrainCog, Database, ExternalLink, ImagePlus, LogOut, RefreshCw, ShieldCheck, Sprout, UsersIcon,
 } from '../api/icons.jsx'
 import { ErrorBox, LoadingBox, Pill, StatCard } from '../components/ui.jsx'
 import { api } from '../api/client.js'
@@ -42,6 +42,28 @@ export function AdminPage({ onLogout }) {
     const iv = setInterval(() => { if (!document.hidden) loadAll() }, 10000)
     return () => clearInterval(iv)
   }, [live, loadAll])
+
+  /* Opens the read-only database page. The tab is opened synchronously (so the
+     browser never blocks it as a popup), then pointed at a blob of the HTML we
+     fetched with the JWT — the token is never placed in a URL. */
+  const openDatabaseView = async () => {
+    const tab = window.open('', '_blank')
+    try {
+      if (tab) {
+        tab.document.write('<title>Loading database view…</title>'
+          + '<body style="font-family:sans-serif;padding:40px;color:#1f3d2b">'
+          + 'Loading the database view…</body>')
+      }
+      const html = await api.databaseViewHtml()
+      const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
+      if (tab) tab.location.href = url
+      else window.location.href = url
+      setTimeout(() => URL.revokeObjectURL(url), 120000)
+    } catch (err) {
+      if (tab) tab.close()
+      setError(err.message || t('loadFailed'))
+    }
+  }
 
   const toggleUser = async (u) => {
     try {
@@ -85,7 +107,7 @@ export function AdminPage({ onLogout }) {
         <p className="ag-body text-sm mb-4" style={{ color: 'rgba(20,35,26,0.6)' }}>{t('adminSub')}</p>
 
         {/* ---- Tabs ---- */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap items-center gap-2 mb-6">
           {tabLabels.map((x) => (
             <button key={x.id} onClick={() => setTab(x.id)}
               className="rounded-full px-4 py-1.5 text-sm font-semibold"
@@ -95,6 +117,12 @@ export function AdminPage({ onLogout }) {
               {x.label}
             </button>
           ))}
+          <button onClick={openDatabaseView}
+            title={t('adminDbViewHint')}
+            className="ag-magnetic ag-sheen ml-auto rounded-full px-4 py-1.5 text-sm font-semibold flex items-center gap-1.5 transition-all duration-500 hover:-translate-y-0.5"
+            style={{ border: `1px solid ${C.line}`, color: C.forest, background: C.white }}>
+            <Database size={14} /> {t('adminOpenDbView')} <ExternalLink size={12} />
+          </button>
         </div>
 
         {error && <div className="mb-4"><ErrorBox message={error} onRetry={loadAll} retryLabel={t('retry')} /></div>}
@@ -165,7 +193,12 @@ export function AdminPage({ onLogout }) {
 
             {/* ---- Audit log ---- */}
             <div className="rounded-xl p-5" style={{ background: C.white, border: `1px solid ${C.line}` }}>
-              <p className="text-xs font-semibold mb-3 flex items-center gap-1.5" style={{ color: 'rgba(20,35,26,0.55)' }}><Database size={14} /> {t('adminAuditLog')}</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold flex items-center gap-1.5" style={{ color: 'rgba(20,35,26,0.55)' }}><Database size={14} /> {t('adminAuditLog')}</p>
+                <button onClick={openDatabaseView} className="ag-underline text-xs font-semibold flex items-center gap-1" style={{ color: C.moss }}>
+                  {t('adminOpenDbView')} <ExternalLink size={11} />
+                </button>
+              </div>
               {audit.length === 0 ? (
                 <p className="text-sm" style={{ color: 'rgba(20,35,26,0.5)' }}>{t('adminAuditEmpty')}</p>
               ) : (

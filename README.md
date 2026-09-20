@@ -302,7 +302,14 @@ With `STORAGE_PROVIDER=SUPABASE` or `CLOUDINARY` the bytes go to that provider i
 
 Reading the file while the app is running is fine (SQLite allows concurrent readers).
 
-**Option B — zero install: an HTML snapshot**
+**Option B — from inside the app (no install, nothing to run)**
+
+Admin dashboard → **"Open database view"** button. It opens a read-only page listing every
+table with its rows, row counts per table and the stored crop samples as clickable
+thumbnails. It is served by `GET /api/admin/database-view`, fetched with the admin's JWT
+(never a token in a URL) and restricted to the ADMIN role.
+
+**Option C — generate the same page as a file**
 
 ```bash
 backend/.venv/Scripts/python scripts/view_database.py          # opens in your browser
@@ -313,7 +320,7 @@ Writes `database_view.html` in the project root: every table in a sidebar with r
 all rows in a table view, `NULL`s dimmed, JSON columns pretty-printed, and stored crop
 samples shown as clickable thumbnails. Read-only and offline — re-run it any time to refresh.
 
-**Option C — SQLite file via the command line**
+**Option D — SQLite file via the command line**
 
 ```bash
 # 1) simplest: SQLite CLI (ships with Python)
@@ -332,7 +339,7 @@ sqlite> select u.name, substr(u.email,1,24), r.id, r.crop, r.disease, r.confiden
   The `image_path` column tells you the exact file in `backend/uploads/` for each sample.
 * **VS Code**: install *SQLite Viewer* and click the `.db` file.
 
-**Option D — PostgreSQL (the real setup)**
+**Option E — PostgreSQL (the real setup)**
 
 ```bash
 psql -U agricure -d agricure
@@ -343,7 +350,7 @@ agricure=# select u.name, u.role, count(*) as samples
 ```
 or open the same server in **pgAdmin** / **DBeaver** using the `DATABASE_URL` credentials.
 
-**Option E — REST API without the UI** (Swagger: http://localhost:8000/docs)
+**Option F — REST API without the UI** (Swagger: http://localhost:8000/docs)
 
 ```bash
 # log in, then read any table through the API
@@ -352,6 +359,7 @@ curl -s -X POST http://localhost:8000/api/auth/login \
   -d '{"email":"admin@agricure.gov.in","password":"admin1234"}'
 
 curl -s http://localhost:8000/api/reports/all/grouped -H "Authorization: Bearer <TOKEN>"
+curl -s http://localhost:8000/api/admin/database-view   -H "Authorization: Bearer <TOKEN>"
 curl -s http://localhost:8000/api/admin/stats        -H "Authorization: Bearer <TOKEN>"
 curl -s http://localhost:8000/api/admin/audit-logs   -H "Authorization: Bearer <TOKEN>"
 # CSV dumps (open in Excel): /api/export/reports | /sensors | /referrals | /feedback

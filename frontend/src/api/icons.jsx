@@ -45,6 +45,7 @@ export const Languages = makeIcon(`<circle cx="12" cy="12" r="9"/><path d="M3 12
 export const ChevronRight = makeIcon(`<path d="M9 6l6 6-6 6"/>`)
 export const Sparkles = makeIcon(`<path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>`)
 export const ClipboardList = makeIcon(`<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M9 11h6"/><path d="M9 15h6"/><path d="M9 19h4"/>`)
+export const ExternalLink = makeIcon(`<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/>`)
 export const Database = makeIcon(`<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>`)
 export const ImagePlus = makeIcon(`<rect x="3" y="4" width="14" height="14" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="M4 17l4-4 3 3 3-3 3 3"/><path d="M19 5v6"/><path d="M16 8h6"/>`)
 export const Bug = makeIcon(`<rect x="8" y="7" width="8" height="12" rx="4"/><path d="M12 7V4"/><path d="M9 4l1.5 2"/><path d="M15 4l-1.5 2"/><path d="M8 11H4"/><path d="M8 15H4"/><path d="M16 11h4"/><path d="M16 15h4"/><path d="M9 19l-2 2"/><path d="M15 19l2 2"/>`)
