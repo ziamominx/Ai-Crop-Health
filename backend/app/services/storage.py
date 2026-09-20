@@ -47,10 +47,19 @@ async def save_image(file: UploadFile, farmer_id: int) -> tuple[str, str]:
 
 
 def _save_local(data: bytes, name: str) -> tuple[str, str]:
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-    path = os.path.join(settings.UPLOAD_DIR, name)
-    with open(path, "wb") as fh:
-        fh.write(data)
+    try:
+        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+        path = os.path.join(settings.UPLOAD_DIR, name)
+        with open(path, "wb") as fh:
+            fh.write(data)
+    except OSError:
+        # Read-only filesystem (serverless). Files would not persist between
+        # requests anyway — surface a clear error instead of silent data loss.
+        raise HTTPException(
+            status_code=507,
+            detail=("LOCAL image storage is not available on this server. "
+                    "Set STORAGE_PROVIDER=SUPABASE or CLOUDINARY with credentials."),
+        )
     url = f"{settings.PUBLIC_BASE_URL}/api/images/{name}"
     return url, path
 

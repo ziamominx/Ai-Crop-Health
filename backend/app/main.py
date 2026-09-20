@@ -30,9 +30,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve locally-stored crop images (LOCAL storage provider demo fallback)
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-app.mount("/api/images", StaticFiles(directory=settings.UPLOAD_DIR), name="images")
+# Serve locally-stored crop images (LOCAL storage provider demo fallback).
+# On read-only serverless filesystems (e.g. Vercel) the directory can't be
+# created and LOCAL storage can't persist files — configure SUPABASE or
+# CLOUDINARY storage there; the mount is skipped rather than crashing the app.
+_UPLOADS_READY = False
+try:
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    _UPLOADS_READY = True
+except OSError as _exc:
+    print(f"[Agricure] LOCAL image storage unavailable ({_exc}); uploads need "
+          "STORAGE_PROVIDER=SUPABASE or CLOUDINARY.")
+if _UPLOADS_READY:
+    app.mount("/api/images", StaticFiles(directory=settings.UPLOAD_DIR), name="images")
 
 API = settings.API_V1_PREFIX
 for router in (auth_router, farm_router, report_router, sensor_router,
