@@ -85,10 +85,22 @@ def queue_retraining(payload: RetrainQueueIn, current: User = Depends(staff_requ
 def model_status(current: User = Depends(staff_required)):
     """Runtime inference configuration (no secrets)."""
     available = settings.AI_MODE == "REAL_MODEL"
+    grok_ready = bool(settings.GROK_API_KEY) and settings.AI_MODE == "GROK_VISION"
+    if settings.AI_MODE == "GROK_VISION":
+        note = ("Grok vision inference via the xAI API — real third-party AI model"
+                if settings.GROK_API_KEY else
+                "GROK_VISION selected but GROK_API_KEY is missing — "
+                "falling back to heuristic image analysis.")
+    elif settings.AI_MODE == "REAL_MODEL":
+        note = "Trained model inference (Keras weights loaded from MODEL_PATH)."
+    else:
+        note = ("Demo inference is deterministic (hash-based) and clearly labelled — "
+                "it is NOT a real classifier.")
     return {
         "ai_mode": settings.AI_MODE,
         "model_version": settings.MODEL_VERSION,
         "real_model_available": available,
-        "demo_note": ("Demo inference is deterministic (hash-based) and clearly labelled — "
-                      "it is NOT a real classifier."),
+        "grok_vision_ready": grok_ready,
+        "grok_model": settings.GROK_MODEL if settings.AI_MODE == "GROK_VISION" else None,
+        "demo_note": note,
     }

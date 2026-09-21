@@ -269,6 +269,15 @@ def get_model() -> CropDiseaseModel:
             print(f"[Agricure] WARNING: REAL_MODEL unavailable ({exc}); "
                   "falling back to HEURISTIC_CV image analysis.")
             return HeuristicCropDiseaseModel()
+    if settings.AI_MODE == "GROK_VISION":
+        try:
+            from ml.grok_model import GrokVisionCropDiseaseModel
+
+            return GrokVisionCropDiseaseModel()
+        except Exception as exc:  # missing key, import error
+            print(f"[Agricure] WARNING: GROK_VISION unavailable ({exc}); "
+                  "falling back to HEURISTIC_CV image analysis.")
+            return HeuristicCropDiseaseModel()
     if settings.AI_MODE == "DEMO_MODEL":
         print("[Agricure] NOTE: AI_MODE=DEMO_MODEL simulates results without reading "
               "the image. Recommend AI_MODE=HEURISTIC_CV for real image analysis.")

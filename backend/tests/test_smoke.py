@@ -200,7 +200,7 @@ def main():
     r = client.get("/api/model/versions", headers=officer_auth)
     check("model versions listed", r.status_code == 200 and len(r.json()) >= 1)
     r = client.get("/api/model/status", headers=officer_auth)
-    check("model status (ai mode reported)", r.json()["ai_mode"] in ("DEMO_MODEL", "HEURISTIC_CV", "REAL_MODEL"))
+    check("model status (ai mode reported)", r.json()["ai_mode"] in ("DEMO_MODEL", "HEURISTIC_CV", "GROK_VISION", "REAL_MODEL"))
     r = client.post("/api/model/retraining/queue", headers=officer_auth, json={})
     check("retraining queue", r.status_code == 200 and r.json()["queued"] >= 1, r.text[:200])
     r = client.get("/api/model/versions", headers=officer_auth)

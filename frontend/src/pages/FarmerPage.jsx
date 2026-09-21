@@ -404,6 +404,10 @@ export function FarmerPage({ onLogout }) {
               <div className="rounded-lg p-2.5 text-xs font-semibold mb-4 flex items-center gap-2" style={{ background: '#fff3dc', color: C.amber, border: '1px dashed #cbb148' }}>
                 <AlertTriangle size={14} /> {t('demoInferenceBadge')}
               </div>
+            ) : String(result.model_version || '').startsWith('grok') ? (
+              <div className="rounded-lg p-2.5 text-xs font-semibold mb-4 flex items-center gap-2" style={{ background: '#e9f5ec', color: C.forest, border: `1px solid ${C.line}` }}>
+                <CheckCircle2 size={14} /> {t('grokBadge')} · {result.model_version}
+              </div>
             ) : String(result.model_version || '').startsWith('heuristic') ? (
               <div className="rounded-lg p-2.5 text-xs font-semibold mb-4 flex items-center gap-2" style={{ background: C.creamDeep, color: C.forest, border: `1px dashed ${C.line}` }}>
                 <BrainCog size={14} /> {t('heuristicBadge')}

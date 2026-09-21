@@ -29,12 +29,19 @@ class Settings(BaseSettings):
 
     # --- AI model ---
     # HEURISTIC_CV = real analysis of the uploaded image (colour/lesion features; default)
+    # GROK_VISION  = real AI inference via the xAI Grok API (needs GROK_API_KEY)
     # DEMO_MODEL   = explicit simulated inference (clearly labelled, never shown as real AI)
     # REAL_MODEL   = pluggable trained model loaded via ml.model_loader
-    AI_MODE: str = "HEURISTIC_CV"        # HEURISTIC_CV | DEMO_MODEL | REAL_MODEL
+    AI_MODE: str = "HEURISTIC_CV"        # HEURISTIC_CV | GROK_VISION | DEMO_MODEL | REAL_MODEL
     MODEL_PATH: Optional[str] = None      # e.g. ./ml/weights/agricure_crop_disease.keras
     MODEL_LABELS_PATH: Optional[str] = None
     MODEL_VERSION: str = "demo-v0"
+
+    # --- Grok (xAI) vision inference ---
+    # Get a key at https://console.x.ai — set AI_MODE=GROK_VISION to use it.
+    GROK_API_KEY: Optional[str] = None
+    GROK_MODEL: str = "grok-4.6"
+    GROK_BASE_URL: str = "https://api.x.ai/v1"
 
     # --- Weather provider ---
     WEATHER_MODE: str = "DEMO_WEATHER"    # DEMO_WEATHER | OPENWEATHER
@@ -70,6 +77,10 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         extra = "ignore"
+
+    @property
+    def grok_available(self) -> bool:
+        return bool(self.GROK_API_KEY) and self.AI_MODE == "GROK_VISION"
 
     @property
     def sqlalchemy_url(self) -> str:

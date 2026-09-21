@@ -79,10 +79,11 @@ legacy/index.html         the original prototype, preserved untouched
 
 ## Honest AI labelling (important)
 
-There are **three inference modes** and the UI states which one produced every report:
+There are **four inference modes** and the UI states which one produced every report:
 
 | `AI_MODE` | What it actually does | UI label |
 |---|---|---|
+| `GROK_VISION` | **Real AI inference via the xAI Grok API.** The uploaded photo is sent to a vision-capable Grok model (e.g. `grok-4.6`), which classifies the disease against the crop's catalogue and returns structured JSON (disease, confidence, severity, reasoning). Requires `GROK_API_KEY`; falls back to `HEURISTIC_CV` with a logged warning if the key is missing. | "Analysed by Grok vision AI (xAI)" + model version |
 | `HEURISTIC_CV` *(default)* | **Real image analysis.** The uploaded photo is decoded and measured: healthy-green fraction, chlorotic (yellow) fraction, necrotic (brown/dark) fraction, powdery residue, and dark lesion clustering. Deterministic rules map those measurements onto the crop's disease catalogue. It genuinely inspects the picture, but it is a **rule-based heuristic, not a trained neural network**. | "Image analysis: rule-based computer-vision heuristic (real pixel analysis, not a trained neural network)." |
 | `DEMO_MODEL` | Deterministic **simulated** classifier hashed from the image bytes — does not look at the image content at all. | "DEMO INFERENCE — simulated AI, not a trained model" |
 | `REAL_MODEL` | A trained Keras model loaded from `MODEL_PATH` (see below). | "Analysed by a trained crop-disease model" |
@@ -104,6 +105,24 @@ There are **three inference modes** and the UI states which one produced every r
   validated epidemiological model. The UI labels it "Prototype decision model".
 * Weather defaults to `WEATHER_MODE=DEMO_WEATHER` (labelled sample data). Set
   `WEATHER_MODE=OPENWEATHER` + `OPENWEATHER_API_KEY` for live data.
+
+### Grok (xAI) vision inference
+
+To analyse crop photos with a real third-party AI model, create an API key at
+[console.x.ai](https://console.x.ai) and configure the backend:
+
+```
+AI_MODE=GROK_VISION
+GROK_API_KEY=xai-...
+GROK_MODEL=grok-4.6
+```
+
+Every report then shows the Grok badge, stores `model_version=grok-vision:<model>` and
+keeps the one-sentence symptom reasoning the model returned (visible in the agent
+activity trace and the officer's verification view). Report analysis calls cost xAI
+tokens; set `GROK_MODEL` to a cheaper vision model if rate limits matter. If the API is
+unreachable or the key is invalid, report analysis fails loudly (503) rather than
+pretending — switch `AI_MODE` back to `HEURISTIC_CV` to run key-free.
 
 ### Demo photos
 
@@ -272,7 +291,7 @@ Environment Variables):
 | `CORS_ORIGINS` | `https://<your-app>.vercel.app,http://localhost:5173` | your deployed frontend origin |
 | `PUBLIC_BASE_URL` | `https://<your-app>.vercel.app` | makes stored image URLs absolute |
 | `DEMO_MODE` | `true` | keeps demo logins and auto-seeds a fresh database on startup |
-| `AI_MODE` | `HEURISTIC_CV` | rule-based image analysis; `REAL_MODEL` needs a served model file |
+| `AI_MODE` | `HEURISTIC_CV` | rule-based image analysis; `GROK_VISION` for real AI via the xAI API (also set `GROK_API_KEY`); `REAL_MODEL` needs a served model file |
 
 Notes
 
