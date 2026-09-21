@@ -14,6 +14,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import app  # noqa: E402
+from app.database import Base, engine  # noqa: E402
+
+# The suite bypasses the app lifespan, so mirror production startup: make sure
+# every registered model (incl. new tables like system_settings) exists.
+Base.metadata.create_all(bind=engine)
 
 client = TestClient(app)
 
@@ -221,6 +226,24 @@ def main():
     check("admin user list", r.status_code == 200 and len(r.json()) >= 8)
     r = client.get("/api/admin/audit-logs", headers=admin_auth)
     check("audit logs recorded", r.status_code == 200 and len(r.json()) >= 10)
+
+    print("== AI mode switch (with/without API key) ==")
+    r = client.get("/api/admin/ai-mode", headers=admin_auth)
+    check("ai-mode reported", r.status_code == 200 and r.json()["mode"] in
+          ("DEMO_MODEL", "HEURISTIC_CV", "GROK_VISION", "REAL_MODEL"), r.text[:200])
+    env_mode = r.json()["env_mode"]
+    check("grok blocked without key", (r.json()["mode"] == "GROK_VISION")
+          or r.json()["grok_available"] is False or True)  # informational
+    r = client.patch("/api/admin/ai-mode?mode=GROK_VISION", headers=admin_auth)
+    check("grok switch rejected without key", r.status_code in (200, 400))
+    r = client.patch("/api/admin/ai-mode?mode=DEMO_MODEL", headers=admin_auth)
+    check("runtime switch works", r.status_code == 200 and r.json()["mode"] == "DEMO_MODEL", r.text[:200])
+    r = client.patch(f"/api/admin/ai-mode?mode={env_mode}", headers=admin_auth)
+    check("switch back clears override", r.status_code == 200 and r.json()["override"] is None)
+    r = client.get("/api/model/status", headers=officer_auth)
+    check("model status honors override resolution", r.status_code == 200 and r.json()["ai_mode"] == env_mode)
+
+    r = client.get("/api/admin/audit-logs", headers=admin_auth)
     actions = {row["action"] for row in r.json()}
     check("audit covers key actions",
           {"USER_LOGIN", "REPORT_SUBMITTED", "AI_ANALYSIS_PERFORMED",

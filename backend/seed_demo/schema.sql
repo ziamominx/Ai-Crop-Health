@@ -160,6 +160,12 @@ CREATE TABLE IF NOT EXISTS model_versions (
     created_at       TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS system_settings (
+    key          VARCHAR(60)  PRIMARY KEY,
+    value        VARCHAR(120) NOT NULL,
+    updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS agent_decisions (
     id                            SERIAL PRIMARY KEY,
     report_id                     INTEGER NOT NULL REFERENCES crop_reports(id),

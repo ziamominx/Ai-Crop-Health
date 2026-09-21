@@ -22,6 +22,7 @@ PRIORITY_TABLES = [
     "users", "farms", "crop_reports", "agent_decisions", "agent_activity",
     "recommendations", "officer_verifications", "referrals", "sensor_readings",
     "notifications", "model_feedback", "model_versions", "audit_logs",
+    "system_settings",
 ]
 
 IMAGE_COLUMNS = ("image_path", "image_url")

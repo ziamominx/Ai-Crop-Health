@@ -18,14 +18,18 @@ export function AdminPage({ onLogout }) {
   const [loading, setLoading] = useState(true)
   const [live, setLive] = useState(true)
   const [lastSync, setLastSync] = useState(null)
+  const [aiModeInfo, setAiModeInfo] = useState(null)
+  const [aiModeBusy, setAiModeBusy] = useState(false)
+  const [aiModeMsg, setAiModeMsg] = useState('')
 
   const loadAll = useCallback(async () => {
     setError('')
     try {
-      const [s, u, a, g] = await Promise.all([
+      const [s, u, a, g, am] = await Promise.all([
         api.adminStats(), api.adminUsers(), api.auditLogs(), api.allReportsGrouped(),
+        api.aiMode(),
       ])
-      setStats(s); setUsers(u); setAudit(a); setGrouped(g)
+      setStats(s); setUsers(u); setAudit(a); setGrouped(g); setAiModeInfo(am)
       setLastSync(new Date())
     } catch (err) {
       setError(err.message || t('loadFailed'))
@@ -62,6 +66,19 @@ export function AdminPage({ onLogout }) {
     } catch (err) {
       if (tab) tab.close()
       setError(err.message || t('loadFailed'))
+    }
+  }
+
+  const switchAiMode = async (mode) => {
+    setAiModeBusy(true); setAiModeMsg('')
+    try {
+      const info = await api.setAiMode(mode)
+      setAiModeInfo(info)
+      setAiModeMsg(t('aiModeSwitched'))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setAiModeBusy(false)
     }
   }
 
@@ -148,6 +165,46 @@ export function AdminPage({ onLogout }) {
                 <p className="text-sm text-white/70">No model version registered.</p>
               )}
               {m?.notes && <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.55)' }}>{m.notes}</p>}
+            </div>
+
+            {/* ---- AI Inference Mode switcher ---- */}
+            <div className="rounded-2xl p-6 mb-6" style={{ background: C.white, border: `1px solid ${C.line}` }}>
+              <p className="text-sm font-semibold mb-1 flex items-center gap-2" style={{ color: C.forest }}><BrainCog size={17} style={{ color: C.moss }} /> {t('aiModeTitle')}</p>
+              <p className="text-xs mb-4" style={{ color: 'rgba(20,35,26,0.55)' }}>{t('aiModeSub')}</p>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { id: 'HEURISTIC_CV', desc: 'Real on-device image analysis — no key needed', keyNeeded: false },
+                  { id: 'GROK_VISION', desc: 'Real AI via the xAI Grok API — needs GROK_API_KEY', keyNeeded: true },
+                  { id: 'DEMO_MODEL', desc: 'Simulated results, clearly labelled DEMO', keyNeeded: false },
+                  { id: 'REAL_MODEL', desc: 'Trained Keras model from MODEL_PATH', keyNeeded: false },
+                ].map((opt) => {
+                  const active = aiModeInfo?.mode === opt.id
+                  const disabled = aiModeBusy || (opt.keyNeeded && !aiModeInfo?.grok_available)
+                  return (
+                    <button key={opt.id} disabled={disabled} onClick={() => switchAiMode(opt.id)}
+                      className="rounded-xl p-3 text-left transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
+                      style={active
+                        ? { background: C.forest, color: 'white' }
+                        : { background: C.creamDeep, color: C.forest }}>
+                      <div className="text-sm font-bold flex items-center justify-between gap-1">
+                        {opt.id.replace('_', ' ')}
+                        {active && <Pill color={C.wheat}>{t('aiModeActive')}</Pill>}
+                      </div>
+                      <div className="text-xs mt-1 leading-snug" style={{ color: active ? 'rgba(255,255,255,0.8)' : 'rgba(20,35,26,0.55)' }}>{opt.desc}</div>
+                      {opt.keyNeeded && !aiModeInfo?.grok_available && (
+                        <div className="text-xs mt-2 font-semibold" style={{ color: C.amber }}>{t('aiModeNeedsKey')}</div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="text-xs mt-3" style={{ color: 'rgba(20,35,26,0.5)' }}>
+                {t('aiModeEnv')}{aiModeInfo?.fallback_applied ? ` · ${t('aiModeFallback')} ${aiModeInfo.fallback_applied}` : ''}
+              </p>
+              {aiModeInfo?.grok_available === false && (
+                <p className="text-xs mt-3" style={{ color: 'rgba(20,35,26,0.5)' }}>{t('aiModeAddKeyHint')}</p>
+              )}
+              {aiModeMsg && <p className="text-xs mt-2 font-semibold" style={{ color: C.green }}>{aiModeMsg}</p>}
             </div>
 
             {/* ---- System stats ---- */}

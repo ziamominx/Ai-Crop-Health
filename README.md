@@ -124,6 +124,29 @@ tokens; set `GROK_MODEL` to a cheaper vision model if rate limits matter. If the
 unreachable or the key is invalid, report analysis fails loudly (503) rather than
 pretending — switch `AI_MODE` back to `HEURISTIC_CV` to run key-free.
 
+### Works with or without an API key
+
+The website is fully functional in both states, and an admin can switch modes **live**:
+
+- **Admin panel → "AI Inference Mode"** — four one-click cards (Heuristic CV / Grok
+  Vision / Demo Model / Real Model). The active engine is stored in the
+  `system_settings` table (overriding the environment) and takes effect on the next
+  report — no restart, and every change is written to the audit log as
+  `AI_MODE_CHANGED`.
+- **Without a key**, the Grok card shows "Needs API key" and is disabled; the app runs
+  `HEURISTIC_CV` (real on-device image analysis) or `DEMO_MODEL` (labelled simulation).
+- **With a key**, Grok Vision unlocks in the panel; selecting it makes subsequent
+  analyses call the xAI API.
+- **If the xAI API fails mid-analysis** (network down, quota exceeded), the agent logs
+  a PERCEPTION activity line — `"Grok API unavailable (…) — falling back to on-device
+  heuristic image analysis"` — completes the report with `HEURISTIC_CV`, and stamps
+  the report with the engine that actually produced it. The demo never dies because
+  of the network.
+
+For the viva: switch to GROK_VISION with a key → submit a photo → show the Grok badge
+and reasoning; then switch to HEURISTIC_CV and repeat to contrast a third-party AI
+model with the transparent on-device rule engine.
+
 ### Demo photos
 
 `frontend/public/demo-photos/` holds a diseased and a healthy sample per crop. They are

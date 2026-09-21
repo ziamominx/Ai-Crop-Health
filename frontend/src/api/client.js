@@ -94,6 +94,8 @@ export const api = {
   queueRetraining: () => request('POST', '/api/model/retraining/queue', { body: {} }),
   // admin
   adminStats: () => request('GET', '/api/admin/stats'),
+  aiMode: () => request('GET', '/api/admin/ai-mode'),
+  setAiMode: (mode) => request('PATCH', `/api/admin/ai-mode?mode=${encodeURIComponent(mode)}`),
   // read-only snapshot of every table, fetched with the JWT (never a token in a URL)
   databaseViewHtml: async (limit = 200) => {
     const res = await request('GET', `/api/admin/database-view?limit=${limit}`, { raw: true })

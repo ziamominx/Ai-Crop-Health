@@ -3,12 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
+from app.ai import inference_service
 from app.auth.dependencies import admin_required
 from app.config import settings
 from app.database import engine, get_db
 from app.models import (AuditLog, CropReport, ModelFeedback, ModelVersion,
                         Notification, Referral, User)
 from app.schemas.schemas import AdminStats, ModelVersionOut, UserOut
+from app.services import ai_mode
 from app.services.db_view import generate_database_view
 from app.utils.audit import audit
 
@@ -72,6 +74,30 @@ def database_view(limit: int = 200, current: User = Depends(admin_required),
     audit(db, current.id, "DATABASE_VIEWED", "database", None, {"limit": limit})
     db.commit()
     return HTMLResponse(content=page)
+
+
+@router.get("/ai-mode")
+def get_ai_mode(current: User = Depends(admin_required), db: Session = Depends(get_db)):
+    """Active AI inference mode with availability info (admin panel toggle)."""
+    info = ai_mode.effective_ai_mode(db)
+    info["valid_modes"] = list(ai_mode.VALID_MODES)
+    info["grok_model"] = settings.GROK_MODEL
+    return info
+
+
+@router.patch("/ai-mode")
+def set_ai_mode(mode: str, current: User = Depends(admin_required),
+                db: Session = Depends(get_db)):
+    """Switch the AI inference mode at runtime (stored in system_settings)."""
+    try:
+        info = ai_mode.set_ai_mode(db, mode)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    inference_service.reset_models()
+    audit(db, current.id, "AI_MODE_CHANGED", "system_setting", None,
+          {"mode": mode, "fallback_applied": info["fallback_applied"]})
+    db.commit()
+    return info
 
 
 @router.get("/audit-logs", response_model=list[dict])

@@ -8,6 +8,7 @@ from app.models.sensor_reading import SensorReading
 from app.models.notification import Notification
 from app.models.model_feedback import ModelFeedback
 from app.models.model_version import ModelVersion
+from app.models.system_setting import SystemSetting
 from app.models.agent_decision import AgentDecision
 from app.models.agent_activity import AgentActivity
 from app.models.audit_log import AuditLog

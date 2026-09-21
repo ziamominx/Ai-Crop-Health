@@ -60,9 +60,25 @@ def run_full_pipeline(db: Session, report: CropReport) -> CropReport:
 
     # ---------- PERCEPTION: image received + inference ----------
     log_activity(db, report.id, "PERCEPTION", "Crop image received")
-    prediction = inference_service.analyze_image(
-        report.image_path, report.crop, fallback_seed=f"report-{report.id}"
-    )
+    mode_info = inference_service.resolve_mode(db)
+    try:
+        prediction = inference_service.analyze_image(
+            report.image_path, report.crop, fallback_seed=f"report-{report.id}",
+            mode=mode_info["mode"])
+    except Exception as exc:
+        # With-or-without-key guarantee: if the external API (Grok) fails at
+        # call time, degrade to on-device heuristic analysis — loudly.
+        if mode_info["mode"] == "GROK_VISION":
+            log_activity(
+                db, report.id, "PERCEPTION",
+                f"Grok API unavailable ({str(exc)[:90]}) — "
+                "falling back to on-device heuristic image analysis",
+            )
+            prediction = inference_service.analyze_image(
+                report.image_path, report.crop, fallback_seed=f"report-{report.id}",
+                mode="HEURISTIC_CV")
+        else:
+            raise
     log_activity(
         db, report.id, "PERCEPTION",
         (f"AI analysis completed: {'Healthy' if prediction.is_healthy else prediction.disease}"

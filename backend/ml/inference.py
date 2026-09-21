@@ -258,9 +258,12 @@ class DemoCropDiseaseModel(CropDiseaseModel):
                           note="DEMO inference — simulated result, not a real model")
 
 
-def get_model() -> CropDiseaseModel:
-    """Factory honoring settings.AI_MODE. Falls back gracefully with a loud note."""
-    if settings.AI_MODE == "REAL_MODEL":
+def get_model_for(mode: str) -> CropDiseaseModel:
+    """Build the model for an explicit mode (env or runtime admin override).
+
+    Falls back gracefully with a loud note — never fabricates output.
+    """
+    if mode == "REAL_MODEL":
         try:
             model = RealCropDiseaseModel()
             model._ensure_loaded()
@@ -269,7 +272,7 @@ def get_model() -> CropDiseaseModel:
             print(f"[Agricure] WARNING: REAL_MODEL unavailable ({exc}); "
                   "falling back to HEURISTIC_CV image analysis.")
             return HeuristicCropDiseaseModel()
-    if settings.AI_MODE == "GROK_VISION":
+    if mode == "GROK_VISION":
         try:
             from ml.grok_model import GrokVisionCropDiseaseModel
 
@@ -278,8 +281,13 @@ def get_model() -> CropDiseaseModel:
             print(f"[Agricure] WARNING: GROK_VISION unavailable ({exc}); "
                   "falling back to HEURISTIC_CV image analysis.")
             return HeuristicCropDiseaseModel()
-    if settings.AI_MODE == "DEMO_MODEL":
+    if mode == "DEMO_MODEL":
         print("[Agricure] NOTE: AI_MODE=DEMO_MODEL simulates results without reading "
               "the image. Recommend AI_MODE=HEURISTIC_CV for real image analysis.")
         return DemoCropDiseaseModel()
     return HeuristicCropDiseaseModel()  # default: real image analysis
+
+
+def get_model() -> CropDiseaseModel:
+    """Factory honoring settings.AI_MODE (see get_model_for for all modes)."""
+    return get_model_for(settings.AI_MODE)
